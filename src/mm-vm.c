@@ -234,15 +234,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* Get free frame in MEMSWP */
     MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
 
-    /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
-    swap_frame(mm->pgd[pgn],PAGING_FPN(pte),caller->active_mswp,swpfpn);
-
-    /* Copy victim frame to swap */
-    __swap_cp_page(MEMRAM, mm->pgd[vicpgn], MEMSWAP, swpfpn);
-
-    /* Copy target frame from swap to mem */
-    __swap_cp_page(MEMSWAP, swpfpn, MEMRAM, PAGING_FPN(mm->pgd[pgn]));
-
+   
     /* Update page table */
     pte_set_swap(&pte, swpfpn);
     pte_set_swap(&mm->pgd[vicpgn], PAGING_FPN(pte));
