@@ -174,56 +174,82 @@ int pgfree_data(struct pcb_t *proc, uint32_t reg_index)
 int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
   uint32_t pte = mm->pgd[pgn];
-
+ 
   if (!PAGING_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
-    int vicpgn;
-    int vicfpn;
-    uint32_t vicpte;
+    int vicpgn, swpfpn; 
+    //int vicfpn;
+    //uint32_t vicpte;
 
-    int tgtfpn = PAGING_SWP(pte); // the target frame storing our variable
+    int tgtfpn = PAGING_SWP(pte);//the target frame storing our variable
 
     /* TODO: Play with your paging theory here */
     /* Find victim page */
     find_victim_page(caller->mm, &vicpgn);
 
     /* Get free frame in MEMSWP */
-    
-
-    vicpte = caller->mm->pgd[vicpgn];
-    vicfpn = PAGING_FPN(vicpte);
-
-    int swpfpn;
     MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
 
-    __swap_cp_page(vicfpn, swpfpn,caller->active_mswp,caller->mswp);
-
-    pte_set_swap(&vicfpn, PAGING_SWP, swpfpn);
-    caller->mm->pgd[vicpgn] = vicpte;
-
-    int target_fpn = PAGING_SWP(pte);
-    __swap_cp_page(target_fpn, vicfpn, caller->mswp, caller->active_mswp);
 
     /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
-    /* TODO: Copy victim frame to swap */
+    /* Copy victim frame to swap */
+    //__swap_cp_page();
+    /* Copy target frame from swap to mem */
     //__swap_cp_page();
 
-    /* TODO: Copy target frame from swap to mem */
-    //__swap_cp_page();
-
-    /* TODO: Update page table */
-    // pte_set_swap() &mm->pgd;
-
-    // Khang: update page table
-
-    mm->pgd[vicpgn] = vicpte;
-    mm->pgd[pgn] = pte;
+    /* Update page table */
+    //pte_set_swap() &mm->pgd;
 
     /* Update its online status of the target page */
-    // pte_set_fpn() & mm->pgd[pgn];
+    //pte_set_fpn() & mm->pgd[pgn];
     pte_set_fpn(&pte, tgtfpn);
 
-    enlist_pgn_node(&caller->mm->fifo_pgn, pgn);
+    enlist_pgn_node(&caller->mm->fifo_pgn,pgn);
+  }
+
+  *fpn = PAGING_FPN(pte);
+
+  return 0;
+}
+
+/*pg_getpage - get the page in ram
+ *@mm: memory region
+ *@pagenum: PGN
+ *@framenum: return FPN
+ *@caller: caller
+ *
+ */
+int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
+{
+  uint32_t pte = mm->pgd[pgn];
+ 
+  if (!PAGING_PAGE_PRESENT(pte))
+  { /* Page is not online, make it actively living */
+    int vicpgn, swpfpn; 
+    int tgtfpn = PAGING_SWP(pte);//the target frame storing our variable
+
+    /* Find victim page */
+    find_victim_page(caller->mm, &vicpgn);
+
+    /* Get free frame in MEMSWP */
+    MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+
+    /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
+    swap_frame(mm->pgd[pgn],PAGING_FPN(pte),caller->active_mswp,swpfpn);
+
+    /* Copy victim frame to swap */
+    __swap_cp_page(MEMRAM, mm->pgd[vicpgn], MEMSWAP, swpfpn);
+
+    /* Copy target frame from swap to mem */
+    __swap_cp_page(MEMSWAP, swpfpn, MEMRAM, PAGING_FPN(mm->pgd[pgn]));
+
+    /* Update page table */
+    pte_set_swap(&pte, swpfpn);
+    pte_set_swap(&mm->pgd[vicpgn], PAGING_FPN(pte));
+    pte_set_fpn(&pte, PAGING_FPN(mm->pgd[pgn]));
+    pte_set_fpn(&mm->pgd[pgn], tgtfpn);
+
+    enlist_pgn_node(&caller->mm->fifo_pgn,pgn);
   }
 
   *fpn = PAGING_FPN(pte);

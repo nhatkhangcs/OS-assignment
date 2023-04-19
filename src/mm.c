@@ -61,7 +61,7 @@ int pte_set_swap(uint32_t *pte, int swptyp, int swpoff)
 }
 
 /* 
- * pte_set_swap - Set PTE entry for on-line page
+ * pte_set_fpn - Set PTE entry for on-line page
  * @pte   : target page table entry (PTE)
  * @fpn   : frame page number (FPN)
  */
@@ -99,6 +99,8 @@ int vmap_page_range(struct pcb_t *caller, // process call
    *      [addr to addr + pgnum*PAGING_PAGESZ
    *      in page table caller->mm->pgd[]
    */
+
+  
 
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
