@@ -157,8 +157,8 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 
 int MEMPHY_dump(struct memphy_struct * mp)
 {
-    /*TODO dump memphy contnt mp->storage 
-     *     for tracing the memory content
+    /*TODO: dump memphy content mp->storage 
+     *      for tracing the memory content
      */
 
     return 0;
@@ -190,7 +190,7 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
 
    mp->rdmflg = (randomflg != 0)?1:0;
 
-   if (!mp->rdmflg )   /* Not Ramdom acess device, then it serial device*/
+   if (!mp->rdmflg )   /* Not Ramdom access device, then it serial device*/
       mp->cursor = 0;
 
    return 0;

@@ -127,9 +127,10 @@ static void *ld_routine(void *args)
 	printf("ld_routine\n");
 	while (i < num_processes)
 	{
+
 		struct pcb_t *proc = load(ld_processes.path[i]);
 #ifdef MLQ_SCHED
-		//printf("%lu\n",ld_processes.prio[i]);
+
 		proc->prio = ld_processes.prio[i];
 #endif
 		while (current_time() < ld_processes.start_time[i])
@@ -203,13 +204,7 @@ static void read_config(const char *path)
 		malloc(sizeof(unsigned long) * num_processes);
 
 #ifdef MLQ_SCHED
-    //printf("Current position of file pointer: %c\n", fgetc(file));
-	//printf("Current position of file pointer: %c\n", fgetc(file));
-	//printf("Current position of file pointer: %c\n", fgetc(file));
-	//printf("Current position of file pointer: %c\n", fgetc(file));
-
 	int i;
-	//printf("%i\n", num_processes);
 	for (i = 0; i < num_processes; i++)
 	{
 		ld_processes.path[i] = (char *)malloc(sizeof(char) * 100);
@@ -222,8 +217,11 @@ static void read_config(const char *path)
 	// 	malloc(sizeof(unsigned long) * num_processes);
 
 #ifdef MLQ_SCHED
-	fscanf(file, "%lu %s %lu\n", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
-		// printf("%s\n", "Hello");
+	fscanf(file, "%lu %s %lu", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
+        //printf("Current position of file pointer: %c\n", fgetc(file));
+    printf("%lu\n",ld_processes.prio[i]);
+
+        // printf("%s\n", "Hello");
 		// printf("Current position of file pointer: %c\n", fgetc(file));
 		// unsigned long a;
 		// char b[100];
@@ -256,15 +254,6 @@ int main(int argc, char *argv[])
 	strcat(path, "input/");
 	strcat(path, argv[1]);
 	read_config(path);
-	// printf("%p\n", ld_processes.prio);
-	// printf("Addr2: %p\n", &ld_processes.prio[0]);
-	// printf("Addr2: %p\n", &ld_processes.prio[1]);
-	// printf("Addr2: %p\n", &ld_processes.prio[2]);
-	// printf("Addr2: %p\n", &ld_processes.prio[3]);
-	// printf("Then: %lu\n", ld_processes.prio[0]);
-	// printf("Then: %lu\n", ld_processes.prio[1]);
-	// printf("Then: %lu\n", ld_processes.prio[2]);
-	// printf("Then: %lu\n", ld_processes.prio[3]);
 
 	pthread_t *cpu = (pthread_t *)malloc(num_cpus * sizeof(pthread_t));
 	struct cpu_args *args =

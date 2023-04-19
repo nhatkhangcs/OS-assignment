@@ -133,6 +133,3 @@ void stop_timer() {
 	}
 }
 
-
-
-
