@@ -156,6 +156,8 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
    return 0;
 }
 
+// TODO: implement this function
+// Khang
 int MEMPHY_dump(struct memphy_struct *mp)
 {
    if (mp == NULL || mp->storage == NULL)

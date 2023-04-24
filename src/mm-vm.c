@@ -236,10 +236,8 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
    
     /* Update page table */
-    pte_set_swap(&pte, swpfpn);
-    pte_set_swap(&mm->pgd[vicpgn], PAGING_FPN(pte));
-    pte_set_fpn(&pte, PAGING_FPN(mm->pgd[pgn]));
-    pte_set_fpn(&mm->pgd[pgn], tgtfpn);
+
+    // Khang: updating page table
 
     enlist_pgn_node(&caller->mm->fifo_pgn,pgn);
   }
