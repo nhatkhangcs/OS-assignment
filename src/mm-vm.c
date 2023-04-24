@@ -212,41 +212,6 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
   return 0;
 }
 
-/*pg_getpage - get the page in ram
- *@mm: memory region
- *@pagenum: PGN
- *@framenum: return FPN
- *@caller: caller
- *
- */
-int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
-{
-  uint32_t pte = mm->pgd[pgn];
- 
-  if (!PAGING_PAGE_PRESENT(pte))
-  { /* Page is not online, make it actively living */
-    int vicpgn, swpfpn; 
-    int tgtfpn = PAGING_SWP(pte);//the target frame storing our variable
-
-    /* Find victim page */
-    find_victim_page(caller->mm, &vicpgn);
-
-    /* Get free frame in MEMSWP */
-    MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
-
-   
-    /* Update page table */
-
-    // Khang: updating page table
-
-    enlist_pgn_node(&caller->mm->fifo_pgn,pgn);
-  }
-
-  *fpn = PAGING_FPN(pte);
-
-  return 0;
-}
-
 /*pg_getval - read value at given offset
  *@mm: memory region
  *@addr: virtual address to acess
