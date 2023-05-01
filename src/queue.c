@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "queue.h"
 
+
 int empty(struct queue_t *q)
 {
         if (q == NULL)
@@ -11,6 +12,7 @@ int empty(struct queue_t *q)
 
 void enqueue(struct queue_t *q, struct pcb_t *proc)
 {
+
         /* TODO: put a new process to queue [q] */
         if (q->size < MAX_QUEUE_SIZE)
         {
@@ -19,6 +21,8 @@ void enqueue(struct queue_t *q, struct pcb_t *proc)
                 q->size++;
         }
 }
+
+#ifdef MLQ_SCHED
 
 struct pcb_t *dequeue(struct queue_t *q)
 {
@@ -50,3 +54,27 @@ struct pcb_t *dequeue(struct queue_t *q)
         }
         return NULL;
 }
+
+#else
+
+struct pcb_t *dequeue(struct queue_t *q) {
+    /* If the queue is empty, return NULL. */
+    if (q->size == 0) {
+        return NULL;
+    }
+    //printf("%s\n", "Here");
+    /* Get the head element from the front of the queue. */
+    struct pcb_t *head = q->proc[0];
+    /* Shift all the elements to the left by one position. */
+    for (int i = 0; i < q->size - 1; i++) {
+        q->proc[i] = q->proc[i+1];
+    }
+    /* Decrement the size of the queue. */
+    q->size--;
+    /* Return the head element. */
+    return head;
+}
+
+#endif
+
+

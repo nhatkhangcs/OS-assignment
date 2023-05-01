@@ -144,7 +144,7 @@ static void *ld_routine(void *args)
 		proc->mswp = mswp;
 		proc->active_mswp = active_mswp;
 #endif
-		//printf("%lu\n",ld_processes.prio[i]);
+		// printf("%lu\n",ld_processes.prio[i]);
 		printf("\tLoaded a process at %s, PID: %d PRIO: %lu\n",
 			   ld_processes.path[i], proc->pid, ld_processes.prio[i]);
 		add_proc(proc);
@@ -168,75 +168,53 @@ static void read_config(const char *path)
 		exit(1);
 	}
 	fscanf(file, "%d %d %d\n", &time_slot, &num_cpus, &num_processes);
-	//printf("Current position of file pointer: %c\n", fgetc(file));
-	//printf("%d %d %d\n", time_slot, num_cpus, num_processes);
 	ld_processes.path = (char **)malloc(sizeof(char *) * num_processes);
 	ld_processes.start_time = (unsigned long *)
 		malloc(sizeof(unsigned long) * num_processes);
-#ifndef MM_PAGING
+#ifdef MM_PAGING
 	int sit;
-#ifdef MM_FIXED_MEMSZ
-	/* We provide here a back compatible with legacy OS simulatiom config file
-	 * In which, it have no addition config line for Mema, keep only one line
-	 * for legacy info
-	 *  [time slice] [N = Number of CPU] [M = Number of Processes to be run]
-	 */
-	//printf("Current position of file pointer: %c\n", fgetc(file));
-	memramsz = 0x100000;
-	memswpsz[0] = 0x1000000;
-	for (sit = 1; sit < PAGING_MAX_MMSWP; sit++)
-		memswpsz[sit] = 0;
-#else
-	/* Read input config of memory size: MEMRAM and upto 4 MEMSWP (mem swap)
-	 * Format: (size=0 result non-used memswap, must have RAM and at least 1 SWAP)
-	 *        MEM_RAM_SZ MEM_SWP0_SZ MEM_SWP1_SZ MEM_SWP2_SZ MEM_SWP3_SZ
-	 */
-	//printf("%s\n", "Here");
-	//printf("Current position of file pointer: %c\n", fgetc(file));
-	fscanf(file, "%d\n", &memramsz);
-	for (sit = 0; sit < PAGING_MAX_MMSWP; sit++)
-		fscanf(file, "%d", &(memswpsz[sit]));
+    #ifdef MM_FIXED_MEMSZ
+        /* We provide here a back compatible with legacy OS simulatiom config file
+         * In which, it have no addition config line for Mema, keep only one line
+         * for legacy info
+         *  [time slice] [N = Number of CPU] [M = Number of Processes to be run]
+         */
+        memramsz = 0x100000;
+        memswpsz[0] = 0x1000000;
+        for (sit = 1; sit < PAGING_MAX_MMSWP; sit++)
+            memswpsz[sit] = 0;
+    #else
+        /* Read input config of memory size: MEMRAM and upto 4 MEMSWP (mem swap)
+         * Format: (size=0 result non-used memswap, must have RAM and at least 1 SWAP)
+         *        MEM_RAM_SZ MEM_SWP0_SZ MEM_SWP1_SZ MEM_SWP2_SZ MEM_SWP3_SZ
+         */
+        fscanf(file, "%d\n", &memramsz);
+        for (sit = 0; sit < PAGING_MAX_MMSWP; sit++)
+            fscanf(file, "%d", &(memswpsz[sit]));
 
-	fscanf(file, "\n"); /* Final character */
+        fscanf(file, "\n"); /* Final character */
+    #endif
+
 #endif
-#endif
-	ld_processes.prio = (unsigned long *)
-		malloc(sizeof(unsigned long) * num_processes);
+     ld_processes.prio = (unsigned long *)malloc(sizeof(unsigned long) * num_processes);
 
-#ifdef MLQ_SCHED
-	int i;
-	for (i = 0; i < num_processes; i++)
-	{
-		ld_processes.path[i] = (char *)malloc(sizeof(char) * 100);
-		ld_processes.path[i][0] = '\0';
-		strcat(ld_processes.path[i], "input/proc/");
-		char proc[100];
-#endif
+    #ifdef MLQ_SCHED
+        int i;
+        for (i = 0; i < num_processes; i++)
+        {
+            ld_processes.path[i] = (char *)malloc(sizeof(char) * 100);
+            ld_processes.path[i][0] = '\0';
+            strcat(ld_processes.path[i], "input/proc/");
+            char proc[100];
+    #endif
 
-	// ld_processes.prio = (unsigned long *)
-	// 	malloc(sizeof(unsigned long) * num_processes);
+    #ifdef MLQ_SCHED
+        fscanf(file, "%lu %s %lu", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
 
-#ifdef MLQ_SCHED
-	fscanf(file, "%lu %s %lu", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
-        //printf("Current position of file pointer: %c\n", fgetc(file));
-    printf("%lu\n",ld_processes.prio[i]);
+    #else
+        fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 
-        // printf("%s\n", "Hello");
-		// printf("Current position of file pointer: %c\n", fgetc(file));
-		// unsigned long a;
-		// char b[100];
-		// fscanf(file, "%lu %s\n", &a, b);
-		// printf("%lu %s\n", a, b);
-		
-		//printf("First: %lu\n",ld_processes.prio[i]);
-		//printf("Addr1: %p\n", &ld_processes.prio[i]);
-		
-#else
-	fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
-	
-		
-#endif
-		//printf("Check: %lu\n",ld_processes.prio[i]);
+    #endif
 		strcat(ld_processes.path[i], proc);
 	}
 }
