@@ -48,3 +48,5 @@ clean:
 	rm -f $(OBJ)/*.o os sched mem
 	rm -r $(OBJ)
 
+debug: os
+	gdb -ex run ./os input/sched

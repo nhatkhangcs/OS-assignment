@@ -53,6 +53,9 @@ static void *cpu_routine(void *args)
 	struct pcb_t *proc = NULL;
 	while (1)
 	{
+		//printf("%d %d \n", time_slot, time_left);
+		//if(proc!=NULL)
+		//printf("Proc->pc, proc->code->size and proc->priority are: %d %d %d\n", proc->pc, proc->code->size, proc->priority);
 		/* Check the status of current process */
 		if (proc == NULL)
 		{
@@ -196,7 +199,7 @@ static void read_config(const char *path)
     #endif
 
 #endif
-     ld_processes.prio = (unsigned long *)malloc(sizeof(unsigned long) * num_processes);
+    ld_processes.prio = (unsigned long *)malloc(sizeof(unsigned long) * num_processes);
 
     #ifdef MLQ_SCHED
         int i;

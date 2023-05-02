@@ -59,33 +59,32 @@ int run(struct pcb_t * proc) {
 		stat = calc(proc);
 		break;
 	case ALLOC:
-#ifdef MM_PAGING
-		stat = pgalloc(proc, ins.arg_0, ins.arg_1);
-
-#else
-		stat = alloc(proc, ins.arg_0, ins.arg_1);
-#endif
+		#ifdef MM_PAGING
+				stat = pgalloc(proc, ins.arg_0, ins.arg_1);
+		#else
+				stat = alloc(proc, ins.arg_0, ins.arg_1);
+		#endif
 		break;
 	case FREE:
-#ifdef MM_PAGING
-		stat = pgfree_data(proc, ins.arg_0);
-#else
-		stat = free_data(proc, ins.arg_0);
-#endif
-		break;
+		#ifdef MM_PAGING
+				stat = pgfree_data(proc, ins.arg_0);
+		#else
+				stat = free_data(proc, ins.arg_0);
+		#endif
+				break;
 	case READ:
-#ifdef MM_PAGING
-		stat = pgread(proc, ins.arg_0, ins.arg_1, ins.arg_2);
-#else
-		stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
-#endif
-		break;
+		#ifdef MM_PAGING
+				stat = pgread(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		#else
+				stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		#endif
+				break;
 	case WRITE:
-#ifdef MM_PAGING
-		stat = pgwrite(proc, ins.arg_0, ins.arg_1, ins.arg_2);
-#else
-		stat = write(proc, ins.arg_0, ins.arg_1, ins.arg_2);
-#endif
+		#ifdef MM_PAGING
+				stat = pgwrite(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		#else
+				stat = write(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		#endif
 		break;
 	default:
 		stat = 1;
