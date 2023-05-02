@@ -33,13 +33,13 @@ struct pcb_t *dequeue(struct queue_t *q)
         if (q->size != 0)
         {
                 struct pcb_t *t_proc = NULL;
-                int highest_priority = 0;
+                int highest_priority = 100;
                 int i;
                 int max_idx = 0;
                 for (i = 0; i < q->size; i++)
                 {
-                        printf("q->proc[i]->prio: %d\n", q->proc[i]->prio);
-                        if (q->proc[i]->prio > highest_priority)
+                        //printf("q->proc[i]->prio: %d\n", q->proc[i]->prio);
+                        if (q->proc[i]->prio < highest_priority)
                         {
                                 t_proc = q->proc[i];
                                 highest_priority = q->proc[i]->prio;
@@ -47,6 +47,8 @@ struct pcb_t *dequeue(struct queue_t *q)
                                 max_idx = i;
                         }
                 }
+
+                //printf("highest_priority: %d\n", highest_priority);
 
                 for (i = max_idx; i < q->size - 1; i++)
                 {
@@ -69,12 +71,12 @@ struct pcb_t *dequeue(struct queue_t *q)
         if (q->size != 0)
         {
                 struct pcb_t *t_proc = NULL;
-                int highest_priority = 0;
+                int highest_priority = 100;
                 int i;
                 int max_idx = 0;
                 for (i = 0; i < q->size; i++)
                 {
-                        if (q->proc[i]->priority > highest_priority)
+                        if (q->proc[i]->priority < highest_priority)
                         {
                                 t_proc = q->proc[i];
                                 highest_priority = q->proc[i]->priority;
@@ -82,6 +84,8 @@ struct pcb_t *dequeue(struct queue_t *q)
                                 max_idx = i;
                         }
                 }
+
+                //printf("highest_priority: %d\n", highest_priority);
 
                 for (i = max_idx; i < q->size - 1; i++)
                 {
