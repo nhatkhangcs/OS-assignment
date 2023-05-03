@@ -148,8 +148,13 @@ static void *ld_routine(void *args)
 		proc->active_mswp = active_mswp;
 #endif
 		// printf("%lu\n",ld_processes.prio[i]);
+#ifdef MLQ_SCHED
 		printf("\tLoaded a process at %s, PID: %d PRIO: %lu\n",
 			   ld_processes.path[i], proc->pid, ld_processes.prio[i]);
+#else
+        printf("\tLoaded a process at %s, PID: %d PRIO: %u\n",
+               ld_processes.path[i], proc->pid, proc->priority);
+#endif
 		add_proc(proc);
 		free(ld_processes.path[i]);
 		i++;
@@ -178,7 +183,7 @@ static void read_config(const char *path)
 	int sit;
     #ifdef MM_FIXED_MEMSZ
         /* We provide here a back compatible with legacy OS simulatiom config file
-         * In which, it have no addition config line for Mema, keep only one line
+         * In which, it has no addition config line for Mema, keep only one line
          * for legacy info
          *  [time slice] [N = Number of CPU] [M = Number of Processes to be run]
          */
@@ -199,9 +204,12 @@ static void read_config(const char *path)
     #endif
 
 #endif
-    ld_processes.prio = (unsigned long *)malloc(sizeof(unsigned long) * num_processes);
 
-    #ifdef MLQ_SCHED
+#ifdef MLQ_SCHED
+    ld_processes.prio = (unsigned long *)malloc(sizeof(unsigned long) * num_processes);
+#endif
+
+    //#ifdef MLQ_SCHED
         int i;
         for (i = 0; i < num_processes; i++)
         {
@@ -209,16 +217,16 @@ static void read_config(const char *path)
             ld_processes.path[i][0] = '\0';
             strcat(ld_processes.path[i], "input/proc/");
             char proc[100];
-    #endif
 
-    #ifdef MLQ_SCHED
-        fscanf(file, "%lu %s %lu", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
+            #ifdef MLQ_SCHED
+                fscanf(file, "%lu %s %lu", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
 
-    #else
-        fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
+            #else
+                fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 
-    #endif
-		strcat(ld_processes.path[i], proc);
+            #endif
+                strcat(ld_processes.path[i], proc);
+
 	}
 }
 

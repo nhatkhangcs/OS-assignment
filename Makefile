@@ -19,7 +19,7 @@ MAKE = $(CC) $(INC)
 # Object files needed by modules
 MEM_OBJ = $(addprefix $(OBJ)/, paging.o mem.o cpu.o loader.o)
 OS_OBJ = $(addprefix $(OBJ)/, cpu.o mem.o loader.o queue.o os.o sched.o timer.o mm-vm.o mm.o mm-memphy.o)
-SCHED_OBJ = $(addprefix $(OBJ)/, cpu.o loader.o)
+SCHED_OBJ = $(addprefix $(OBJ)/, os.o cpu.o mem.o loader.o sched.o queue.o timer.o)
 HEADER = $(wildcard $(INCLUDE)/*.h)
 
 all: os
@@ -31,7 +31,7 @@ mem: $(MEM_OBJ)
 
 # Just compile scheduler
 sched: $(SCHED_OBJ)
-	$(MAKE) $(LFLAGS) $(MEM_OBJ) -o sched $(LIB)
+	$(MAKE) $(LFLAGS) $(SCHED_OBJ) -o sched $(LIB)
 
 # Compile the whole OS simulation
 os: $(OS_OBJ)
