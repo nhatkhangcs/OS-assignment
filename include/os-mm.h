@@ -1,9 +1,11 @@
 #ifndef OSMM_H
 #define OSMM_H
 
-// #define MM_PAGING
 #define PAGING_MAX_MMSWP 4 /* max number of supported swapped space */
 #define PAGING_MAX_SYMTBL_SZ 30
+
+#include <sys/types.h>
+#include <pthread.h>
 
 typedef char BYTE;
 typedef uint32_t addr_t;
@@ -77,9 +79,10 @@ struct memphy_struct {
    int rdmflg;
    int cursor;
 
-   /* Management structure */
+   /* Management structure. Remember to use lock so that one CPU can access once at a time */
    struct framephy_struct *free_fp_list;
-   struct framephy_struct *used_fp_list;
+   // struct framephy_struct *used_fp_list;
+	pthread_mutex_t lock;
 };
 
 #endif

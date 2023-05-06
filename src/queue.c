@@ -26,7 +26,7 @@ void enqueue(struct queue_t *q, struct pcb_t *proc)
 
 struct pcb_t *dequeue(struct queue_t *q)
 {
-        //printf("dequeue of MLQ used\n");
+        // printf("dequeue of MLQ used\n");
         /* TODO: return a pcb whose priority is the highest
          * in the queue [q] and remember to remove it from q
          * */
@@ -64,7 +64,7 @@ struct pcb_t *dequeue(struct queue_t *q)
 
 struct pcb_t *dequeue(struct queue_t *q)
 {
-        //printf("dequeue of non MLQ used\n");
+        // printf("dequeue of non MLQ used\n");
         /* TODO: return a pcb whose priority is the highest
          * in the queue [q] and remember to remove it from q
          * */
@@ -96,7 +96,6 @@ struct pcb_t *dequeue(struct queue_t *q)
         }
         return NULL;
 }
-
 
 #endif
 

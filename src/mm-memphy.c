@@ -1,4 +1,6 @@
-// #ifdef MM_PAGING
+#include "../include/os-cfg.h"
+
+#ifdef MM_PAGING
 /*
  * PAGING based Memory Management
  * Memory physical module mm/mm-memphy.c
@@ -124,8 +126,16 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
    /* Init head of free framephy list */
    fst = malloc(sizeof(struct framephy_struct));
    fst->fpn = iter;
-   mp->free_fp_list = fst;
+   // Initialize the mutex
+   pthread_mutex_init(&mp->lock, NULL);
 
+   // Access the free_fp_list and used_fp_list while holding the lock
+   pthread_mutex_lock(&mp->lock);
+   mp->free_fp_list = fst;
+   // Access the lists here
+   pthread_mutex_unlock(&mp->lock);
+
+   
    /* We have list with first element, fill in the rest num-1 element member*/
    for (iter = 1; iter < numfp; iter++)
    {
@@ -141,7 +151,13 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
 
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 {
+   // Initialize the mutex
+   pthread_mutex_init(&mp->lock, NULL);
+
+   // Access the free_fp_list and used_fp_list while holding the lock
+   pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
+   pthread_mutex_unlock(&mp->lock);
 
    if (fp == NULL)
       return -1;
@@ -168,16 +184,18 @@ int MEMPHY_dump(struct memphy_struct *mp)
 
    printf("Memory dump:\n");
 
-   int i, j;
-   uint32_t *storage = (uint32_t *)mp->storage;
+   int i;
+   //uint32_t *storage = (uint32_t *)mp->storage;
    for (i = 0; i < mp->maxsz; i += 4)
    {
-      printf("%08x: ", i);
-      for (j = 0; j < 4 && (i + j) < mp->maxsz; j++)
-      {
-         printf("%08x ", storage[i / 4 + j]);
+      if(mp->storage[i] != 0){
+         printf("%d: %d \n", i, mp->storage[i]);
+         // for (j = 0; j < 4 && (i + j) < mp->maxsz; j++)
+         // {
+         //    if(storage[i / 4 + j] != 0)
+         //       printf("%08x ", storage[i / 4 + j]);
+         // }
       }
-      printf("\n");
    }
 
    return 0;
@@ -185,13 +203,26 @@ int MEMPHY_dump(struct memphy_struct *mp)
 
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
 {
+   // Initialize the mutex
+   pthread_mutex_init(&mp->lock, NULL);
+
+   // Access the free_fp_list and used_fp_list while holding the lock
+   pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
+   pthread_mutex_unlock(&mp->lock);
+
    struct framephy_struct *newnode = malloc(sizeof(struct framephy_struct));
 
    /* Create new node with value fpn */
    newnode->fpn = fpn;
    newnode->fp_next = fp;
+   // Initialize the mutex
+   pthread_mutex_init(&mp->lock, NULL);
+
+   // Access the free_fp_list and used_fp_list while holding the lock
+   pthread_mutex_lock(&mp->lock);
    mp->free_fp_list = newnode;
+   pthread_mutex_unlock(&mp->lock);
 
    return 0;
 }
@@ -201,6 +232,7 @@ int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
  */
 int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
 {
+   //printf("Init memphy\n");
    mp->storage = (BYTE *)malloc(max_size * sizeof(BYTE));
    mp->maxsz = max_size;
 
@@ -214,4 +246,4 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
    return 0;
 }
 
-// #endif
+#endif

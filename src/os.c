@@ -5,6 +5,7 @@
 #include "../include/loader.h"
 #include "../include/mm.h"
 
+
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
@@ -147,7 +148,6 @@ static void *ld_routine(void *args)
 		proc->mswp = mswp;
 		proc->active_mswp = active_mswp;
 #endif
-		// printf("%lu\n",ld_processes.prio[i]);
 #ifdef MLQ_SCHED
 		printf("\tLoaded a process at %s, PID: %d PRIO: %lu\n",
 			   ld_processes.path[i], proc->pid, ld_processes.prio[i]);
@@ -157,11 +157,17 @@ static void *ld_routine(void *args)
 #endif
 		add_proc(proc);
 		free(ld_processes.path[i]);
+		
 		i++;
+		//printf("i = %d\n", i);
 		next_slot(timer_id);
+		//printf("i = %d\n", i);
 	}
+	//printf("ld_routine done\n");
 	free(ld_processes.path);
+	
 	free(ld_processes.start_time);
+	
 	done = 1;
 	detach_event(timer_id);
 	pthread_exit(NULL);
@@ -180,8 +186,10 @@ static void read_config(const char *path)
 	ld_processes.start_time = (unsigned long *)
 		malloc(sizeof(unsigned long) * num_processes);
 #ifdef MM_PAGING
+
 	int sit;
     #ifdef MM_FIXED_MEMSZ
+	
         /* We provide here a back compatible with legacy OS simulatiom config file
          * In which, it has no addition config line for Mema, keep only one line
          * for legacy info
@@ -232,6 +240,9 @@ static void read_config(const char *path)
 
 int main(int argc, char *argv[])
 {
+
+
+
 	/* Read config */
 	if (argc != 2)
 	{
@@ -242,7 +253,9 @@ int main(int argc, char *argv[])
 	path[0] = '\0';
 	strcat(path, "input/");
 	strcat(path, argv[1]);
+	
 	read_config(path);
+	
 
 	pthread_t *cpu = (pthread_t *)malloc(num_cpus * sizeof(pthread_t));
 	struct cpu_args *args =
@@ -266,6 +279,7 @@ int main(int argc, char *argv[])
 	struct memphy_struct mram;
 	struct memphy_struct mswp[PAGING_MAX_MMSWP];
 
+	
 	/* Create MEM RAM */
 	init_memphy(&mram, memramsz, rdmflag);
 
@@ -276,6 +290,7 @@ int main(int argc, char *argv[])
 
 	/* In Paging mode, it needs passing the system mem to each PCB through loader*/
 	struct mmpaging_ld_args *mm_ld_args = malloc(sizeof(struct mmpaging_ld_args));
+	//printf("Init Paging mode\n");
 
 	mm_ld_args->timer_id = ld_event;
 	mm_ld_args->mram = (struct memphy_struct *)&mram;
@@ -288,6 +303,7 @@ int main(int argc, char *argv[])
 
 	/* Run CPU and loader */
 #ifdef MM_PAGING
+	//printf("Running Paging mode\n");
 	pthread_create(&ld, NULL, ld_routine, (void *)mm_ld_args);
 #else
 	pthread_create(&ld, NULL, ld_routine, (void *)ld_event);
@@ -307,6 +323,12 @@ int main(int argc, char *argv[])
 
 	/* Stop timer */
 	stop_timer();
-
+	i = 0;
+	while(i < num_cpus){
+		printf("Free mem %d\n", i);
+		pthread_mutex_destroy(&mm_ld_args->mswp[i]->lock);
+		i++;
+	}
+	
 	return 0;
 }
