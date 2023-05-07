@@ -92,24 +92,15 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
     return 0;
   }
-
-  
-
+  //Minh: handle failed get_free_vmrg_area call 
   /*Attempt to increate limit to get space */
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-  int inc_sz = cur_vma->sbrk + size - cur_vma->vm_end;
-  // int inc_limit_ret
+  int inc_sz = PAGING_PAGE_ALIGNSZ(size);
+  //int inc_limit_ret
   int old_sbrk;
 
   old_sbrk = cur_vma->sbrk;
-  //printf("inc_sz: %d\n", inc_sz);
-
-  if (inc_sz > 0)
-  {
-    inc_vma_limit(caller, vmaid, inc_sz);
-    cur_vma->vm_end = PAGING_PAGE_ALIGNSZ(inc_sz);
-  }
-  //printf("Here\n");
+  if (inc_vma_limit(caller, vmaid, inc_sz) < 0) return -1;
 
   /*Successful increase limit */
   caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
@@ -137,7 +128,7 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
     return -1;
 
   /* TODO: Manage the collect freed region to freerg_list */
-
+  //Minh
   rgnode = get_symrg_byid(caller->mm, rgid);
 
   /*enlist the obsoleted memory region */
@@ -179,6 +170,7 @@ int pgfree_data(struct pcb_t *proc, uint32_t reg_index)
  */
 int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
+  //from call tracking, assumes mm is the same as caller->mm
 	uint32_t pte = mm->pgd[pgn];
 
 	if (pte == 0)
@@ -188,20 +180,18 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
 	if (!PAGING_PAGE_PRESENT(pte))
 	{ /* Page is not online, make it actively living */
-    printf("pg_getpage: page is not online\n");
+    printf("pg_getpage: page fault\n");
 		int vicpgn, swpfpn;
 		// int vicfpn;
 		// uint32_t vicpte;
 
 		int tgtfpn = PAGING_SWP(pte); // the target frame storing our variable
-
+    //Minh
 		/* TODO: Play with your paging theory here */
 		/* Find victim page */
-		if (find_victim_page(caller->mm, &vicpgn) < 0)
-		{
-			return -1;
-		}
-		uint32_t victim_pte = caller->mm->pgd[vicpgn];
+		if (find_victim_page(mm, &vicpgn) < 0) return -1;
+
+		uint32_t victim_pte = mm->pgd[vicpgn];
 		int victim_fpn = PAGING_FPN(victim_pte);
 
 		/* Get free frame in MEMSWP */
@@ -215,18 +205,19 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
 		/* Update page table */
 		/* Update the victim page entry to SWAPPED */
-		pte_set_swap(&mm->pgd[vicpgn], 0, swpfpn);
+    //pte_set_swap() &mm->pgd;
+		pte_set_swap(&victim_pte, 0, swpfpn);
 
 		/* Update its online status of the target page */
 		/* Update the accessed page entry to PRESENT*/
 		//pte_set_fpn() & mm->pgd[pgn];
-		pte_set_fpn(&mm->pgd[pgn], victim_fpn);
-		pte = mm->pgd[pgn];
+		pte_set_fpn(&pte, victim_fpn);
 
 		// enlist_pgn_node(&caller->mm->fifo_using_pgn, pgn);
-		enlist_tail_pgn_node(&caller->mm->fifo_pgn, pgn);
+		enlist_tail_pgn_node(&mm->fifo_pgn, pgn);
 	}
 
+  //Page is already live, obtain framenum
 	*fpn = PAGING_FPN(pte);
 
 	return 0;
@@ -421,6 +412,7 @@ struct vm_rg_struct *get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
  */
 int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int vmaend)
 {
+  
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
   return OVERLAP(cur_vma->vm_start, cur_vma->vm_end, vmastart, vmaend);
 }
@@ -461,41 +453,17 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
  *@pgn: return page number
  */
 
-/* Khang: FIFO approach */
+/* Minh: FIFO approach */
 int find_victim_page(struct mm_struct *mm, int *retpgn)
 {
   struct pgn_t *pg = mm->fifo_pgn;
-  struct pgn_t *prev_pg = NULL;
-  struct pgn_t *oldest_pg = NULL;
-  int oldest_pgn = -1;
+  //fifo_pgn is updated by enlist_tail_pgn_node(), therefore the first node in should be the head
+  if (pg == NULL) return -1;
+  
+  mm->fifo_pgn = pg->pg_next;
+  *retpgn = pg->pgn;
 
-  /* Find the oldest page in the FIFO list */
-  while (pg != NULL)
-  {
-    if (oldest_pg == NULL || pg->pgn < oldest_pgn)
-    {
-      oldest_pg = pg;
-      oldest_pgn = pg->pgn;
-    }
-    prev_pg = pg;
-    pg = pg->pg_next;
-  }
-
-  /* If we found a victim page, remove it from the FIFO list */
-  if (oldest_pg != NULL)
-  {
-    if (prev_pg != NULL)
-    {
-      prev_pg->pg_next = oldest_pg->pg_next;
-    }
-    else
-    {
-      mm->fifo_pgn = oldest_pg->pg_next;
-    }
-    *retpgn = oldest_pg->pgn;
-    free(oldest_pg);
-    return 1;
-  }
+  free(pg);
 
   return 0;
 }
