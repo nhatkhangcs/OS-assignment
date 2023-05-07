@@ -156,9 +156,10 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       *frm_lst = newfp_str;
     }
     else
-    { // ERROR CODE of obtaining somes but not enough frames
-      // THINK later
-      return -1;
+    { 
+      //vm_map_ram checks for error code -3000 in case of memory shortage so we set it to -3000 here
+      if (*frm_lst != NULL) return -3000; //obtaining somes but not enough frames
+      return -1; //cannot obtain anything
     }
   }
 
