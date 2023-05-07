@@ -240,9 +240,6 @@ static void read_config(const char *path)
 
 int main(int argc, char *argv[])
 {
-
-
-
 	/* Read config */
 	if (argc != 2)
 	{
@@ -278,7 +275,6 @@ int main(int argc, char *argv[])
 
 	struct memphy_struct mram;
 	struct memphy_struct mswp[PAGING_MAX_MMSWP];
-
 	
 	/* Create MEM RAM */
 	init_memphy(&mram, memramsz, rdmflag);
@@ -323,10 +319,12 @@ int main(int argc, char *argv[])
 
 	/* Stop timer */
 	stop_timer();
+	pthread_mutex_destroy(&mram.lock);
 	i = 0;
-	while(i < num_cpus){
-		printf("Free mem %d\n", i);
-		pthread_mutex_destroy(&mm_ld_args->mswp[i]->lock);
+
+	while(i < PAGING_MAX_MMSWP){
+		//printf("Free mem %d\n", i);
+		pthread_mutex_destroy(&mswp[i].lock);
 		i++;
 	}
 	

@@ -33,7 +33,7 @@ struct pcb_t *dequeue(struct queue_t *q)
         if (q->size != 0)
         {
                 struct pcb_t *t_proc = NULL;
-                int highest_priority = 100;
+                int highest_priority = MAX_PRIO;
                 int i;
                 int max_idx = 0;
                 for (i = 0; i < q->size; i++)
@@ -71,7 +71,7 @@ struct pcb_t *dequeue(struct queue_t *q)
         if (q->size != 0)
         {
                 struct pcb_t *t_proc = NULL;
-                int highest_priority = 100;
+                int highest_priority = MAX_PRIO;
                 int i;
                 int max_idx = 0;
                 for (i = 0; i < q->size; i++)

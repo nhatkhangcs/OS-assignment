@@ -99,14 +99,16 @@ int vmap_page_range(struct pcb_t *caller,           // process call
 
   struct framephy_struct* traverse = frames;
   struct mm_struct *mm = caller->mm;
-
+  //printf("Traverse fpn: %d\n", traverse->fpn);
   while(traverse!= NULL)
   {
-    
+    //printf("Traverse fpn: %d\n", traverse->fpn);
     /* TODO map range of frame to address space
      *      [addr to addr + pgnum*PAGING_PAGESZ
      *      in page table caller->mm->pgd[]
      */
+    
+    
     
     uint32_t pte = 1 << 31 |
                    0 << 30 |
@@ -116,6 +118,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
                    0 << 14 |
                    0 << 13 |
                    traverse->fpn << 0;
+    
 
     mm->pgd[pgn + pgit] = pte;
                   
@@ -148,6 +151,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     if (MEMPHY_get_freefp(caller->mram, &fpn) == 0)
     {
       newfp_str = malloc(sizeof(struct framephy_struct));
+      newfp_str->fpn = fpn;
       newfp_str->fp_next = *frm_lst;
       *frm_lst = newfp_str;
     }
@@ -199,6 +203,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
 
   /* it leaves the case of memory is enough but half in ram, half in swap
    * do the swaping all to swapper to get the all in ram */
+  // printf("Here\n");
   vmap_page_range(caller, mapstart, incpgnum, frm_lst, ret_rg);
 
   return 0;
@@ -287,7 +292,7 @@ int enlist_pgn_node(struct pgn_t **plist, int pgn)
 
 int enlist_tail_pgn_node(struct pgn_t **plist, int pgn)
 {
-  printf("enlist_tail_pgn_node\n");
+  //printf("enlist_tail_pgn_node\n");
   struct pgn_t *pnode = malloc(sizeof(struct pgn_t));
   if (pnode == NULL) {
     return -1; // error: unable to allocate memory

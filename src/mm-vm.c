@@ -307,7 +307,7 @@ int pgread(
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
-  MEMPHY_dump(proc->mram);
+  //MEMPHY_dump(proc->mram);
 #endif
 
   return val;
@@ -343,11 +343,11 @@ int pgwrite(
     uint32_t offset)
 {
 #ifdef IODUMP
-  printf("write region=%d offset=%d value=%d\n", destination, offset, data);
+printf("write region=%d offset=%d value=%d\n", destination, offset, data);
 #ifdef PAGETBL_DUMP
-  print_pgtbl(proc, 0, -1); // print max TBL
+print_pgtbl(proc, 0, -1); // print max TBL
 #endif
-  MEMPHY_dump(proc->mram);
+//MEMPHY_dump(proc->mram);
 #endif
 
   return __write(proc, 0, destination, offset, data);

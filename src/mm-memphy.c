@@ -126,8 +126,6 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
    /* Init head of free framephy list */
    fst = malloc(sizeof(struct framephy_struct));
    fst->fpn = iter;
-   // Initialize the mutex
-   pthread_mutex_init(&mp->lock, NULL);
 
    // Access the free_fp_list and used_fp_list while holding the lock
    pthread_mutex_lock(&mp->lock);
@@ -151,9 +149,6 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
 
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 {
-   // Initialize the mutex
-   pthread_mutex_init(&mp->lock, NULL);
-
    // Access the free_fp_list and used_fp_list while holding the lock
    pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
@@ -203,9 +198,6 @@ int MEMPHY_dump(struct memphy_struct *mp)
 
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
 {
-   // Initialize the mutex
-   pthread_mutex_init(&mp->lock, NULL);
-
    // Access the free_fp_list and used_fp_list while holding the lock
    pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
@@ -216,8 +208,6 @@ int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
    /* Create new node with value fpn */
    newnode->fpn = fpn;
    newnode->fp_next = fp;
-   // Initialize the mutex
-   pthread_mutex_init(&mp->lock, NULL);
 
    // Access the free_fp_list and used_fp_list while holding the lock
    pthread_mutex_lock(&mp->lock);
@@ -236,6 +226,9 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
    mp->storage = (BYTE *)malloc(max_size * sizeof(BYTE));
    mp->maxsz = max_size;
 
+   //Minh: Initialize memphy lock
+   pthread_mutex_init(&mp->lock, NULL);
+   
    MEMPHY_format(mp, PAGING_PAGESZ);
 
    mp->rdmflg = (randomflg != 0) ? 1 : 0;
