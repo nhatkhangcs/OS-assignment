@@ -70,17 +70,16 @@ struct vm_rg_struct *get_symrg_byid(struct mm_struct *mm, int rgid)
   return &mm->symrgtbl[rgid];
 }
 
-/*__alloc - allocate a region memory
+/*__alloc - allocate a memory region
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
  *@rgid: memory region ID (used to identify variable in symbole table)
  *@size: allocated size
  *@alloc_addr: address of allocated memory region
- *
  */
 int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 {
-  /*Allocate at the toproof */
+  /* Allocate at the toproof */
   struct vm_rg_struct rgnode;
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
@@ -92,21 +91,29 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
     return 0;
   }
-  //Minh: handle failed get_free_vmrg_area call 
-  /*Attempt to increate limit to get space */
-  struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-  int inc_sz = PAGING_PAGE_ALIGNSZ(size);
-  //int inc_limit_ret
+
+  /*Attempt to increase limit to get space */
+  struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);\
+  int gap_size = cur_vma->vm_end - cur_vma->sbrk;
+  if(gap_size >= size){
+      cur_vma->sbrk += size;
+      return 0;
+  }
+
+  int inc_sz = PAGING_PAGE_ALIGNSZ(size - gap_size);
+  if (inc_vma_limit(caller, vmaid, inc_sz) < 0) return -1;
+
+
   int old_sbrk;
 
   old_sbrk = cur_vma->sbrk;
-  if (inc_vma_limit(caller, vmaid, inc_sz) < 0) return -1;
+
 
   /*Successful increase limit */
   caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
-  caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
+  caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size - gap_size;
   
-  cur_vma->sbrk = old_sbrk + size;
+  cur_vma->sbrk = old_sbrk + size - gap_size;
 
   *alloc_addr = old_sbrk;
   
