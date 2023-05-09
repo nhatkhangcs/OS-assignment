@@ -110,14 +110,8 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     
     
     
-    uint32_t pte = 1 << 31 |
-                   0 << 30 |
-                   0 << 29 |
-                   0 << 28 |
-                   0 << 15 |
-                   0 << 14 |
-                   0 << 13 |
-                   traverse->fpn << 0;
+    uint32_t pte;
+    pte_set_fpn(&pte, traverse->fpn);
     
 
     mm->pgd[pgn + pgit] = pte;
@@ -280,6 +274,7 @@ int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
   return 0;
 }
 
+// this enlist is enlist head node
 int enlist_pgn_node(struct pgn_t **plist, int pgn)
 {
   struct pgn_t *pnode = malloc(sizeof(struct pgn_t));
@@ -291,31 +286,31 @@ int enlist_pgn_node(struct pgn_t **plist, int pgn)
   return 0;
 }
 
-int enlist_tail_pgn_node(struct pgn_t **plist, int pgn)
-{
-  //printf("enlist_tail_pgn_node\n");
-  struct pgn_t *pnode = malloc(sizeof(struct pgn_t));
-  if (pnode == NULL) {
-    return -1; // error: unable to allocate memory
-  }
+// int enlist_tail_pgn_node(struct pgn_t **plist, int pgn)
+// {
+//   //printf("enlist_tail_pgn_node\n");
+//   struct pgn_t *pnode = malloc(sizeof(struct pgn_t));
+//   if (pnode == NULL) {
+//     return -1; // error: unable to allocate memory
+//   }
 
-  pnode->pgn = pgn;
-  pnode->pg_next = NULL; // the new node will be the last node in the list
+//   pnode->pgn = pgn;
+//   pnode->pg_next = NULL; // the new node will be the last node in the list
 
-  if (*plist == NULL) {
-    // the list is currently empty, so make the new node the head of the list
-    *plist = pnode;
-  } else {
-    // traverse the list to find the last node, and link the new node to it
-    struct pgn_t *last = *plist;
-    while (last->pg_next != NULL) {
-      last = last->pg_next;
-    }
-    last->pg_next = pnode;
-  }
+//   if (*plist == NULL) {
+//     // the list is currently empty, so make the new node the head of the list
+//     *plist = pnode;
+//   } else {
+//     // traverse the list to find the last node, and link the new node to it
+//     struct pgn_t *last = *plist;
+//     while (last->pg_next != NULL) {
+//       last = last->pg_next;
+//     }
+//     last->pg_next = pnode;
+//   }
 
-  return 0;
-}
+//   return 0;
+// }
 
 
 int print_list_fp(struct framephy_struct *ifp)

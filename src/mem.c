@@ -26,10 +26,10 @@ void init_mem(void)
 }
 
 /* get offset of the virtual address */
-static addr_t get_offset(addr_t addr)
-{
-	return addr & ~((~0U) << OFFSET_LEN);
-}
+// static addr_t get_offset(addr_t addr)
+// {
+// 	return addr & ~((~0U) << OFFSET_LEN);
+// }
 
 /* get the first layer index */
 static addr_t get_first_lv(addr_t addr)
@@ -38,10 +38,10 @@ static addr_t get_first_lv(addr_t addr)
 }
 
 /* get the second layer index */
-static addr_t get_second_lv(addr_t addr)
-{
-	return (addr >> OFFSET_LEN) - (get_first_lv(addr) << PAGE_LEN);
-}
+// static addr_t get_second_lv(addr_t addr)
+// {
+// 	return (addr >> OFFSET_LEN) - (get_first_lv(addr) << PAGE_LEN);
+// }
 
 /* Search for page table table from the a segment table */
 static struct trans_table_t *get_trans_table(
@@ -73,13 +73,13 @@ static int translate(
 { // Process uses given virtual address
 
 	/* Offset of the virtual address */
-	addr_t offset = get_offset(virtual_addr);
-	offset++;
-	offset--;
+	// addr_t offset = get_offset(virtual_addr);
+	// offset++;
+	// offset--;
 	/* The first layer index */
 	addr_t first_lv = get_first_lv(virtual_addr);
 	/* The second layer index */
-	addr_t second_lv = get_second_lv(virtual_addr);
+	// addr_t second_lv = get_second_lv(virtual_addr);
 
 	/* Search in the first level */
 	struct trans_table_t *trans_table = NULL;
@@ -88,17 +88,7 @@ static int translate(
 	{
 		return 0;
 	}
-
-	int i;
-	for (i = 0; i < trans_table->size; i++)
-	{
-		if (trans_table->table[i].v_index == second_lv)
-		{
-			/* DO NOTHING HERE. This mem is obsoleted */
-			return 1;
-		}
-	}
-	return 0;
+	return 1;
 }
 
 addr_t alloc_mem(uint32_t size, struct pcb_t *proc)

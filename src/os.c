@@ -5,7 +5,6 @@
 #include "../include/loader.h"
 #include "../include/mm.h"
 
-
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
@@ -319,6 +318,8 @@ int main(int argc, char *argv[])
 
 	/* Stop timer */
 	stop_timer();
+
+#ifdef MM_PAGING
 	pthread_mutex_destroy(&mram.lock);
 	i = 0;
 
@@ -327,6 +328,7 @@ int main(int argc, char *argv[])
 		pthread_mutex_destroy(&mswp[i].lock);
 		i++;
 	}
+#endif
 	
 	return 0;
 }
