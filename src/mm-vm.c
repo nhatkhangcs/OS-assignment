@@ -399,7 +399,6 @@ struct vm_rg_struct *get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
  */
 int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int vmaend)
 {
-
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
   return OVERLAP(cur_vma->vm_start, cur_vma->vm_end, vmastart, vmaend);
 }
@@ -446,7 +445,6 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
 {
   struct pgn_t *pg = mm->fifo_pgn;
   struct pgn_t *prev = mm->fifo_pgn;
-  // fifo_pgn is updated by enlist_tail_pgn_node(), therefore the first node in should be the head
   if (pg == NULL)
     return -1;
 
