@@ -4,7 +4,7 @@
 #define MLQ_SCHED 1
 #define MAX_PRIO 140
 
-#define MM_PAGING 1
+//#define MM_PAGING 1
 //#define MM_FIXED_MEMSZ 1
 //#define VMDBG 1
 //#define MMDBG 1
