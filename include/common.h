@@ -23,6 +23,8 @@
 #define NUM_PAGES	(1 << (ADDRESS_SIZE - OFFSET_LEN))
 #define PAGE_SIZE	(1 << OFFSET_LEN)
 
+
+
 enum ins_opcode_t {
 	CALC,	// Just perform calculation, only use CPU
 	ALLOC,	// Allocate memory
@@ -70,6 +72,7 @@ struct pcb_t {
 	struct code_seg_t * code;	// Code segment
 	addr_t regs[10]; // Registers, store address of allocated regions
 	uint32_t pc; // Program pointer, point to the next instruction
+	int burst_time; // Burst time, for RR scheduling
 #ifdef MLQ_SCHED
 	// Priority on execution (if supported), on-fly aka. changeable
 	// and this vale overwrites the default priority when it existed

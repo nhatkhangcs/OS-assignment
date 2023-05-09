@@ -4,6 +4,8 @@
         "sched.h": "c",
         "loader.h": "c",
         "mm.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stdlib.h": "c",
+        "common.h": "c"
     }
 }

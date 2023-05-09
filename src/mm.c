@@ -121,6 +121,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     enlist_pgn_node(&caller->mm->fifo_pgn, pgn + pgit);
 
     /* Update return region */
+    ret_rg->rg_end += PAGING_PAGESZ;
     pgit++;
     traverse=traverse->fp_next;
   }

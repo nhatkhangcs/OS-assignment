@@ -4,6 +4,7 @@
 #include "../include/sched.h"
 #include "../include/loader.h"
 #include "../include/mm.h"
+#include "../include/queue.h"
 
 #include <pthread.h>
 #include <stdio.h>
@@ -181,6 +182,8 @@ static void read_config(const char *path)
 		exit(1);
 	}
 	fscanf(file, "%d %d %d\n", &time_slot, &num_cpus, &num_processes);
+	//timeslot = time_slot;
+	//printf("time_slot = %d, num_cpus = %d, num_processes = %d\n", time_slot, num_cpus, num_processes);
 	ld_processes.path = (char **)malloc(sizeof(char *) * num_processes);
 	ld_processes.start_time = (unsigned long *)
 		malloc(sizeof(unsigned long) * num_processes);
@@ -226,7 +229,9 @@ static void read_config(const char *path)
             char proc[100];
 
             #ifdef MLQ_SCHED
+				//printf("Processing MLQ\n");
                 fscanf(file, "%lu %s %lu", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
+				// printf("Prio: %lu\n", ld_processes.prio[i]);
 
             #else
                 fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);

@@ -437,7 +437,7 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
 /*find_victim_page - find victim page
  *@mm: caller
  *@retpgn: return page number
- * used FIFO algorithm
+ *used FIFO
  */
 
 int find_victim_page(struct mm_struct *mm, int *retpgn)
