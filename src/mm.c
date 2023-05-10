@@ -112,6 +112,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     
     uint32_t pte;
     pte_set_fpn(&pte, traverse->fpn);
+    printf("traverse->fpn: %d\n", traverse->fpn);
     
 
     mm->pgd[pgn + pgit] = pte;

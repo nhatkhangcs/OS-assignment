@@ -36,17 +36,24 @@ struct pcb_t *get_mlq_proc(void)
      * */
     pthread_mutex_lock(&queue_lock);
     unsigned long prio;
+    int check = 0;
     for (prio = 0; prio < MAX_PRIO; prio++)
         if (!empty(&mlq_ready_queue[prio]))
         {
             if (mlq_ready_queue[prio].slot > 0)
             {
+                check = 1;
                 proc = dequeue(&mlq_ready_queue[prio]);
-                //mlq_ready_queue[prio].slot -= min(mlq_ready_queue[prio].slot, min(proc->burst_time, timeslot));
+                mlq_ready_queue[prio].slot -= 1;
                 break;
             }
-
         }
+    if(check == 0){
+        int i = 0;
+        for (i = 0; i < MAX_PRIO; i++){
+            mlq_ready_queue[i].slot = MAX_PRIO - i;
+        }
+    }
     pthread_mutex_unlock(&queue_lock);
     return proc;
 }

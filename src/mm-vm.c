@@ -288,7 +288,7 @@ int pgread(
   BYTE data;
   int val = __read(proc, 0, source, offset, &data);
 
-  destination = (uint32_t)data;
+  proc->regs[destination] = (uint32_t)data;
 #ifdef IODUMP
   printf("read region=%d offset=%d value=%d\n", source, offset, data);
 #ifdef PAGETBL_DUMP
