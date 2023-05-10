@@ -231,11 +231,10 @@ static void read_config(const char *path)
             #ifdef MLQ_SCHED
 				//printf("Processing MLQ\n");
                 fscanf(file, "%lu %s %lu", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
-				//printf("Prio: %lu\n", ld_processes.prio[i]);
+				// printf("Prio: %lu\n", ld_processes.prio[i]);
 
             #else
                 fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
-				//printf("%s\n", proc);
 
             #endif
                 strcat(ld_processes.path[i], proc);
