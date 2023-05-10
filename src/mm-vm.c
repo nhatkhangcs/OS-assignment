@@ -95,7 +95,10 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   int gap_size = cur_vma->vm_end - cur_vma->sbrk;
   if (gap_size >= size)
   {
-    cur_vma->sbrk += size;
+    /* Khang: Update region */
+    caller->mm->symrgtbl[rgid].rg_start = cur_vma->sbrk;
+    caller->mm->symrgtbl[rgid].rg_end = cur_vma->sbrk + size - gap_size;
+    cur_vma->sbrk += size - gap_size;
     return 0;
   }
 
@@ -482,9 +485,12 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
+  print_list_rg(cur_vma->vm_freerg_list);
 
-  if (rgit == NULL)
+  if (rgit == NULL){
+    //printf("rgit is null\n");
     return -1;
+  }
 
   /* Probe uninitialized newrg */
   newrg->rg_start = newrg->rg_end = -1;
