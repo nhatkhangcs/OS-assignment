@@ -144,19 +144,43 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
 
   for (pgit = 0; pgit < req_pgnum; pgit++)
   {
-    if (MEMPHY_get_freefp(caller->mram, &fpn) == 0)
+    int freefp_found = MEMPHY_get_freefp(caller->mram, &fpn);
+    if (freefp_found < 0) //Not enough frame, must swap
     {
-      newfp_str = malloc(sizeof(struct framephy_struct));
-      newfp_str->fpn = fpn;
-      newfp_str->fp_next = *frm_lst;
-      *frm_lst = newfp_str;
+      //Minh: Find a victim page and swap it
+      printf("alloc range: not enough frames\n");
+      if (*frm_lst != NULL) {
+        int vicpgn, swpfpn;
+
+        /* Find victim page */
+        if (find_victim_page(caller->mm, &vicpgn) < 0) return -1;
+
+        uint32_t victim_pte = caller->mm->pgd[vicpgn];
+        int victim_fpn = PAGING_FPN(victim_pte);
+
+        /* Get free frame in MEMSWP */
+        MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+
+        /* Do swap frame from MEMRAM to MEMSWP */
+        /* Copy victim frame to swap */
+        __swap_cp_page(caller->mram, victim_fpn, caller->active_mswp, swpfpn);
+
+        /* Update page table */
+        /* Update the victim page entry to SWAPPED */
+        pte_set_swap(&victim_pte, 0, swpfpn);
+
+        //Allocate the swapped page
+        fpn = victim_fpn;
+      }
     }
-    else
-    { 
-      //vm_map_ram checks for error code -3000 in case of memory shortage so we set it to -3000 here
-      if (*frm_lst != NULL) return -3000; //obtaining somes but not enough frames
-      return -1; //cannot obtain anything
-    }
+    //Put the frame number into frm_lst
+    newfp_str = malloc(sizeof(struct framephy_struct));
+    newfp_str->fpn = fpn;
+    newfp_str->fp_next = *frm_lst;
+    newfp_str->owner = caller->mm;
+
+    *frm_lst = newfp_str;
+
   }
 
   return 0;
