@@ -147,15 +147,17 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
 
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 {
+   pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
-   
-   
-   if (fp == NULL) return -1;
+   pthread_mutex_unlock(&mp->lock);
 
+   if (fp == NULL) return -1;
+   
    *retfpn = fp->fpn;
    mp->free_fp_list = fp->fp_next;
+   
    free(fp);
-
+   
    return 0;
 }
 

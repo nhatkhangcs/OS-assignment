@@ -95,7 +95,6 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   int inc_sz = PAGING_PAGE_ALIGNSZ(size);
   if (inc_vma_limit(caller, vmaid, inc_sz) < 0) return -1;
   
-
   /* Successfully increase limit */
   *alloc_addr = caller->mm->symrgtbl[rgid].rg_start = cur_vma->sbrk;
   caller->mm->symrgtbl[rgid].rg_end = cur_vma->sbrk + size;
@@ -122,7 +121,9 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
 
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list(caller->mm, rgnode);
+#ifdef MMDBG
   print_list_rg(caller->mm->mmap->vm_freerg_list);
+#endif
 
   return 0;
 }

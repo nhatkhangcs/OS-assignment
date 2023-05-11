@@ -134,7 +134,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
   int pgit, fpn;
   struct framephy_struct *newfp_str;
 
-  printf("req page %d\n", req_pgnum);
+  //printf("req page %d\n", req_pgnum);
   for (pgit = 0; pgit < req_pgnum; pgit++)
   {
     int freefp_found = MEMPHY_get_freefp(caller->mram, &fpn);
