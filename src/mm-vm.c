@@ -103,8 +103,10 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   // }
 
   int inc_sz = PAGING_PAGE_ALIGNSZ(size);
-  if (inc_vma_limit(caller, vmaid, inc_sz) < 0)
+  if (inc_vma_limit(caller, vmaid, inc_sz) < 0){
+    //printf("Cannot increase limit\n");
     return -1;
+  }
 
   /* Successfully increase limit */
 

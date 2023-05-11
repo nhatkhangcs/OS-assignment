@@ -150,11 +150,16 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 {
    // Access the free_fp_list and used_fp_list while holding the lock
-   pthread_mutex_lock(&mp->lock);
+   //pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
    
-   if (fp == NULL)
+   
+   if (fp == NULL){
+      //printf("fp is null\n");
       return -1;
+   }
+   //printf("First element of free_fp_list is %d\n", mp->free_fp_list->fpn);
+   //printf("fp not null\n");
 
    *retfpn = fp->fpn;
    mp->free_fp_list = fp->fp_next;
@@ -162,8 +167,11 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
    /* MEMPHY is iteratively used up until its exhausted
     * No garbage collector acting then it not been released
     */
+   //fp->fp_next = NULL;
    free(fp);
-   pthread_mutex_unlock(&mp->lock);
+   // check if free_fp_list if null
+   //printf("free_fp_list is null: %d\n", mp->free_fp_list == NULL);
+   //pthread_mutex_unlock(&mp->lock);
    return 0;
 }
 

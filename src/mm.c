@@ -141,27 +141,33 @@ int vmap_page_range(struct pcb_t *caller,           // process call
 
 int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct **frm_lst)
 {
+  //printf("req_pgnum: %d\n", req_pgnum);
   int pgit, fpn;
   struct framephy_struct *newfp_str;
 
   for (pgit = 0; pgit < req_pgnum; pgit++)
   {
+    //print_list_fp(caller->mram->free_fp_list);
     int freefp_found = MEMPHY_get_freefp(caller->mram, &fpn);
+    //printf("freefp_found: %d\n", freefp_found);
     if (freefp_found < 0) //Not enough frame, must swap
     {
       //Minh: Find a victim page and swap it
-      printf("alloc range: not enough frames\n");
-      if (*frm_lst != NULL) {
+      //printf("alloc range: not enough frames\n");
+      //if (*frm_lst != NULL) {
         int vicpgn, swpfpn;
+        
 
         /* Find victim page */
         if (find_victim_page(caller->mm, &vicpgn) < 0) return -1;
-
-        uint32_t victim_pte = caller->mm->pgd[vicpgn];
-        int victim_fpn = PAGING_FPN(victim_pte);
+        
+        //uint32_t victim_pte = caller->mm->pgd[vicpgn];
+        //int victim_fpn = PAGING_FPN(victim_pte);
+        uint32_t victim_fpn = GETVAL(caller->mm->pgd[vicpgn], PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
 
         /* Get free frame in MEMSWP */
         MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+        
 
         /* Do swap frame from MEMRAM to MEMSWP */
         /* Copy victim frame to swap */
@@ -169,20 +175,23 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
 
         /* Update page table */
         /* Update the victim page entry to SWAPPED */
-        pte_set_swap(&victim_pte, 0, swpfpn);
+        pte_set_swap(&caller->mm->pgd[vicpgn], 0, swpfpn);
 
         //Allocate the swapped page
         fpn = victim_fpn;
-      }
+      //}
+      //printf("alloc range: swapped\n");
+      
     }
     //Put the frame number into frm_lst
     newfp_str = malloc(sizeof(struct framephy_struct));
     newfp_str->fpn = fpn;
     newfp_str->fp_next = *frm_lst;
     newfp_str->owner = caller->mm;
-
+    //pgit++;
     *frm_lst = newfp_str;
-
+    //pgit check
+    //printf("pgit is: %d\n", pgit);
   }
 
   return 0;
