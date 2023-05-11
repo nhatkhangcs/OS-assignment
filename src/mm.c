@@ -219,13 +219,9 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
    *duplicate control mechanism, keep it simple
    */
   ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
-  
-
-  if (ret_alloc < 0 && ret_alloc != -3000)
-    return -1;
 
   /* Out of memory */
-  if (ret_alloc == -3000)
+  if (ret_alloc == -1)
   {
 #ifdef MMDBG
     printf("OOM: vm_map_ram out of memory \n");
