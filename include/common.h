@@ -62,30 +62,29 @@ struct page_table_t {
 		addr_t v_index;	// Virtual index
 		struct trans_table_t * next_lv;
 	} table[1 << FIRST_LV_LEN];
-	int size;	// Number of row in the first layer
+	int size;							// Number of row in the first layer
 };
 
 /* PCB, describe information about a process */
 struct pcb_t {
-	uint32_t pid;	// PID
-	uint32_t priority; // Default priority, this legacy (FIXED) value depend on process itself
-	struct code_seg_t * code;	// Code segment
-	addr_t regs[10]; // Registers, store address of allocated regions
-	uint32_t pc; // Program pointer, point to the next instruction
-	int burst_time; // Burst time, for RR scheduling
+	uint32_t pid;						// PID
+	uint32_t priority;					// Default priority, this legacy (FIXED) value depend on process itself
+	struct code_seg_t * code;			// Code segment
+	addr_t regs[10]; 					// Registers, store address of allocated regions
+	uint32_t pc; 						// Program pointer, point to the next instruction
 #ifdef MLQ_SCHED
 	// Priority on execution (if supported), on-fly aka. changeable
 	// and this vale overwrites the default priority when it existed
 	uint32_t prio;     
 #endif
 #ifdef MM_PAGING
-	struct mm_struct *mm;
-	struct memphy_struct *mram;
-	struct memphy_struct **mswp;
-	struct memphy_struct *active_mswp;
+	struct mm_struct *mm;				// Main memory
+	struct memphy_struct *mram;			// Physical memory
+	struct memphy_struct **mswp;		// Swap memory for swapping pages in case need more pages
+	struct memphy_struct *active_mswp;	// Active swap memory
 #endif
-	struct page_table_t * page_table; // Page table
-	uint32_t bp;	// Break pointer
+	struct page_table_t * page_table;   // Page table
+	uint32_t bp;						// Break pointer
 
 };
 

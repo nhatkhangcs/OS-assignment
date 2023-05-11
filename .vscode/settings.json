@@ -7,5 +7,6 @@
         "string.h": "c",
         "stdlib.h": "c",
         "common.h": "c"
-    }
+    },
+    "makefile.makePath": "E:/SOFT/General_Subjects/operating-system/project/OS-assignment/os"
 }

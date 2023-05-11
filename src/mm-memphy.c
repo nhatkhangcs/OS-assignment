@@ -152,8 +152,7 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
    // Access the free_fp_list and used_fp_list while holding the lock
    pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
-   pthread_mutex_unlock(&mp->lock);
-
+   
    if (fp == NULL)
       return -1;
 
@@ -164,7 +163,7 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
     * No garbage collector acting then it not been released
     */
    free(fp);
-
+   pthread_mutex_unlock(&mp->lock);
    return 0;
 }
 

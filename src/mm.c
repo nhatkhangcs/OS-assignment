@@ -127,6 +127,8 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     traverse=traverse->fp_next;
   }
 
+  print_list_pgn(caller->mm->fifo_pgn);
+
   return 0;
 }
 
