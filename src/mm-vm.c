@@ -35,7 +35,6 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
 /*get_vma_by_num - get vm area by numID
  *@mm: memory region
  *@vmaid: ID vm area to alloc memory region
- *
  */
 struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
 {
@@ -92,24 +91,12 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
   /* Attempt to increase limit to get space */
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-  // int gap_size = cur_vma->vm_end - cur_vma->sbrk;
-  // if (gap_size >= size)
-  // {
-  //   /* Khang: Update region */
-  //   caller->mm->symrgtbl[rgid].rg_start = cur_vma->sbrk;
-  //   caller->mm->symrgtbl[rgid].rg_end = cur_vma->sbrk + size - gap_size;
-  //   cur_vma->sbrk += size - gap_size;
-  //   return 0;
-  // }
 
   int inc_sz = PAGING_PAGE_ALIGNSZ(size);
-  if (inc_vma_limit(caller, vmaid, inc_sz) < 0){
-    //printf("Cannot increase limit\n");
-    return -1;
-  }
+  if (inc_vma_limit(caller, vmaid, inc_sz) < 0) return -1;
+  
 
   /* Successfully increase limit */
-
   *alloc_addr = caller->mm->symrgtbl[rgid].rg_start = cur_vma->sbrk;
   caller->mm->symrgtbl[rgid].rg_end = cur_vma->sbrk + size;
   cur_vma->sbrk = cur_vma->sbrk + size;
@@ -167,7 +154,6 @@ int pgfree_data(struct pcb_t *proc, uint32_t reg_index)
  *@pagenum: PGN
  *@framenum: return FPN
  *@caller: caller
- *
  */
 int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
@@ -180,7 +166,6 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
   if (!PAGING_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
-    // printf("pg_getpage: page fault\n");
     int vicpgn, swpfpn;
 
     int tgtfpn = PAGING_SWP(pte); // the target frame storing our variable
@@ -208,7 +193,6 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
     /* Update its online status of the target page */
     /* Update the accessed page entry to PRESENT*/
-
     pte_set_fpn(&pte, victim_fpn);
     enlist_pgn_node(&mm->fifo_pgn, pgn);
   }
@@ -488,10 +472,12 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
+
+#ifdef MMDBG
   print_list_rg(cur_vma->vm_freerg_list);
+#endif
 
   if (rgit == NULL){
-    //printf("rgit is null\n");
     return -1;
   }
 

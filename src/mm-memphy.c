@@ -127,10 +127,8 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
    fst = malloc(sizeof(struct framephy_struct));
    fst->fpn = iter;
 
-   // Access the free_fp_list and used_fp_list while holding the lock
    pthread_mutex_lock(&mp->lock);
    mp->free_fp_list = fst;
-   // Access the lists here
    pthread_mutex_unlock(&mp->lock);
 
    
@@ -149,34 +147,18 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
 
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 {
-   // Access the free_fp_list and used_fp_list while holding the lock
-   //pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
    
    
-   if (fp == NULL){
-      //printf("fp is null\n");
-      return -1;
-   }
-   //printf("First element of free_fp_list is %d\n", mp->free_fp_list->fpn);
-   //printf("fp not null\n");
+   if (fp == NULL) return -1;
 
    *retfpn = fp->fpn;
    mp->free_fp_list = fp->fp_next;
-
-   /* MEMPHY is iteratively used up until its exhausted
-    * No garbage collector acting then it not been released
-    */
-   //fp->fp_next = NULL;
    free(fp);
-   // check if free_fp_list if null
-   //printf("free_fp_list is null: %d\n", mp->free_fp_list == NULL);
-   //pthread_mutex_unlock(&mp->lock);
+
    return 0;
 }
 
-// TODO: implement this function
-// Khang
 int MEMPHY_dump(struct memphy_struct *mp)
 {
    if (mp == NULL || mp->storage == NULL)
@@ -187,17 +169,8 @@ int MEMPHY_dump(struct memphy_struct *mp)
    printf("Memory dump:\n");
 
    int i;
-   //uint32_t *storage = (uint32_t *)mp->storage;
-   for (i = 0; i < mp->maxsz; i += 4)
-   {
-      if(mp->storage[i] != 0){
-         printf("%d: %d \n", i, mp->storage[i]);
-         // for (j = 0; j < 4 && (i + j) < mp->maxsz; j++)
-         // {
-         //    if(storage[i / 4 + j] != 0)
-         //       printf("%08x ", storage[i / 4 + j]);
-         // }
-      }
+   for (i = 0; i < mp->maxsz; i += 4){
+      if(mp->storage[i] != 0) printf("%d: %d \n", i, mp->storage[i]);
    }
 
    return 0;
@@ -205,7 +178,6 @@ int MEMPHY_dump(struct memphy_struct *mp)
 
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
 {
-   // Access the free_fp_list and used_fp_list while holding the lock
    pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
    pthread_mutex_unlock(&mp->lock);
@@ -216,7 +188,6 @@ int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
    newnode->fpn = fpn;
    newnode->fp_next = fp;
 
-   // Access the free_fp_list and used_fp_list while holding the lock
    pthread_mutex_lock(&mp->lock);
    mp->free_fp_list = newnode;
    pthread_mutex_unlock(&mp->lock);
@@ -229,18 +200,16 @@ int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
  */
 int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
 {
-   //printf("Init memphy\n");
    mp->storage = (BYTE *)malloc(max_size * sizeof(BYTE));
    mp->maxsz = max_size;
 
-   //Minh: Initialize memphy lock
    pthread_mutex_init(&mp->lock, NULL);
    
    MEMPHY_format(mp, PAGING_PAGESZ);
 
    mp->rdmflg = (randomflg != 0) ? 1 : 0;
 
-   if (!mp->rdmflg) /* Not Ramdom access device, then it serial device*/
+   if (!mp->rdmflg) /* Not Ramdom access device, then it serial device */
       mp->cursor = 0;
 
    return 0;
