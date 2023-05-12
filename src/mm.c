@@ -104,7 +104,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
      *      [addr to addr + pgnum*PAGING_PAGESZ
      *      in page table caller->mm->pgd[]
      */
-    uint32_t pte;
+    uint32_t pte = 0;
     pte_set_fpn(&pte, traverse->fpn);
     mm->pgd[pgn + pgit] = pte;
 
