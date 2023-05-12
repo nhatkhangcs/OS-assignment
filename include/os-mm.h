@@ -12,7 +12,8 @@ typedef uint32_t addr_t;
 //typedef unsigned int uint32_t;
 
 struct pgn_t{
-   int pgn;
+   //int pgn;
+   uint32_t* pte; //pointer to page table entry
    struct pgn_t *pg_next; 
 };
 
@@ -54,9 +55,6 @@ struct mm_struct {
 
    /* Currently we support a fixed number of symbol */
    struct vm_rg_struct symrgtbl[PAGING_MAX_SYMTBL_SZ];
-
-   /* list of free page */
-   struct pgn_t *fifo_pgn;
 };
 
 /*
@@ -81,8 +79,9 @@ struct memphy_struct {
 
    /* Management structure. Remember to use lock so that one CPU can access once at a time */
    struct framephy_struct *free_fp_list;
-   // struct framephy_struct *used_fp_list;
+   struct pgn_t *fifo_fp_list;
 	pthread_mutex_t lock;
+   pthread_mutex_t fifo_lock;
 };
 
 #endif

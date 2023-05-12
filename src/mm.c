@@ -108,7 +108,9 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     pte_set_fpn(&pte, traverse->fpn);
     mm->pgd[pgn + pgit] = pte;
 
-    enlist_pgn_node(&caller->mm->fifo_pgn, pgn + pgit);
+    pthread_mutex_lock(&caller->mram->fifo_lock);
+    enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn + pgit]);
+    pthread_mutex_unlock(&caller->mram->fifo_lock);
 
     /* Update return region */
     ret_rg->rg_end += PAGING_PAGESZ;
@@ -117,7 +119,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
   }
 
 #ifdef MMDBG
-  print_list_pgn(caller->mm->fifo_pgn);
+  print_list_pgn(caller->mram->fifo_fp_list);
 #endif
 
   return 0;
@@ -288,11 +290,10 @@ int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
  * @plist: page list
  * @pgn: page number
  */
-int enlist_pgn_node(struct pgn_t **plist, int pgn)
+int enlist_pgn_node(struct pgn_t **plist, uint32_t* pte)
 {
   struct pgn_t *pnode = malloc(sizeof(struct pgn_t));
-
-  pnode->pgn = pgn;
+  pnode->pte = pte;
   pnode->pg_next = *plist;
   *plist = pnode;
 
@@ -386,7 +387,8 @@ int print_list_pgn(struct pgn_t *ip)
   printf("\n");
   while (ip != NULL)
   {
-    printf("va[%d]-\n", ip->pgn);
+    int fpn = PAGING_FPN(*(ip->pte));
+    printf("frame[%d]-\n", fpn);
     ip = ip->pg_next;
   }
   printf("\n");

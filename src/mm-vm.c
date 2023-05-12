@@ -170,7 +170,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     int tgtfpn = PAGING_SWP(pte); // the target frame storing our variable
     /* TODO: Play with your paging theory here */
     /* Find victim page */
-    if (find_victim_page(mm, &vicpgn) < 0)
+    if (find_victim_page(caller->mram, &vicpgn) < 0)
       return -1;
 
     uint32_t victim_pte = mm->pgd[vicpgn];
@@ -193,7 +193,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* Update its online status of the target page */
     /* Update the accessed page entry to PRESENT*/
     pte_set_fpn(&pte, victim_fpn);
-    enlist_pgn_node(&mm->fifo_pgn, pgn);
+    enlist_pgn_node(&caller->mram->fifo_fp_list, victim_pte);
   }
 
   *fpn = PAGING_FPN(pte);
@@ -419,33 +419,30 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
  * @retpgn: return page number
  * used FIFO
  */
-int find_victim_page(struct mm_struct *mm, int *retpgn)
+int find_victim_page(struct memphy_struct *mram, uint32_t **retpte)
 {
-  struct pgn_t *pg = mm->fifo_pgn;
-  struct pgn_t *prev = mm->fifo_pgn;
+  struct pgn_t *pg = mram->fifo_fp_list;
+  struct pgn_t *prev = NULL;
+  
   if (pg == NULL)
     return -1;
 
   while (pg->pg_next != NULL)
   {
+    prev = pg;
     pg = pg->pg_next;
   }
 
-  if (prev == pg)
+  if (prev == NULL)
   {
-    mm->fifo_pgn = NULL;
+    mram->fifo_fp_list = NULL;
   }
 
-  else
-  {
-    while (prev->pg_next != pg)
-    {
-      prev = prev->pg_next;
-    }
+  else {
     prev->pg_next = NULL;
   }
 
-  *retpgn = pg->pgn;
+  *retpte = pg->pte;
   free(pg);
 
   return 0;

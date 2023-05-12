@@ -223,8 +223,9 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
    mp->maxsz = max_size;
 
    pthread_mutex_init(&mp->lock, NULL);
-   
+   pthread_mutex_init(&mp->fifo_lock, NULL);
    MEMPHY_format(mp, PAGING_PAGESZ);
+   mp->fifo_fp_list = NULL;
 
    mp->rdmflg = (randomflg != 0) ? 1 : 0;
 
