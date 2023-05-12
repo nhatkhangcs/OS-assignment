@@ -143,7 +143,6 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       int vicpgn, swpfpn;
 
       /* Find victim page */
-      //print_list_pgn(caller->mm->fifo_pgn);
       if (find_victim_page(caller->mm, &vicpgn) < 0) return -1;
       
       uint32_t victim_pte = caller->mm->pgd[vicpgn];
@@ -161,8 +160,6 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       pte_set_swap(&caller->mm->pgd[vicpgn], 0, swpfpn);
     
       /* Update the new page entry to FPN */
-      //pte_set_fpn(&victim_pte, victim_fpn);
-      //enlist_pgn_node(&caller->mm->fifo_pgn, vicpgn);
       print_pgtbl(caller, 0, -1);
       fpn = victim_fpn;
     }
@@ -191,12 +188,12 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
   struct framephy_struct *frm_lst = NULL;
   int ret_alloc;
 
-  /*@bksysnet: author provides a feasible solution of getting frames
-   *FATAL logic in here, wrong behaviour if we have not enough page
-   *i.e. we request 1000 frames meanwhile our RAM has size of 3 frames
-   *Don't try to perform that case in this simple work, it will result
-   *in endless procedure of swap-off to get frame and we have not provide
-   *duplicate control mechanism, keep it simple
+  /* @bksysnet: author provides a feasible solution of getting frames
+   * FATAL logic in here, wrong behaviour if we have not enough page
+   * i.e. we request 1000 frames meanwhile our RAM has size of 3 frames
+   * Don't try to perform that case in this simple work, it will result
+   * in endless procedure of swap-off to get frame and we have not provide
+   * duplicate control mechanism, keep it simple
    */
   ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
 
@@ -221,7 +218,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
  * @srcfpn : source physical page number (FPN)
  * @mpdst  : destination memphy
  * @dstfpn : destination physical page number (FPN)
- **/
+ */
 int __swap_cp_page(struct memphy_struct *mpsrc, int srcfpn,
                    struct memphy_struct *mpdst, int dstfpn)
 {
@@ -241,7 +238,7 @@ int __swap_cp_page(struct memphy_struct *mpsrc, int srcfpn,
 }
 
 /*
- *Initialize a empty Memory Management instance
+ * Initialize a empty Memory Management instance
  * @mm:     self mm
  * @caller: mm owner
  */
@@ -287,9 +284,9 @@ int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
 }
 
 /*
- *enlist_pgn_node: Enlist page node to the list
- *@plist: page list
- *@pgn: page number
+ * enlist_pgn_node: Enlist page node to the list
+ * @plist: page list
+ * @pgn: page number
  */
 int enlist_pgn_node(struct pgn_t **plist, int pgn)
 {
@@ -303,8 +300,8 @@ int enlist_pgn_node(struct pgn_t **plist, int pgn)
 }
 
 /*
- *print_list_fp: print list of free frames
- *@plist: list of free frames
+ * print_list_fp: print list of free frames
+ * @plist: list of free frames
  */
 int print_list_fp(struct framephy_struct *ifp)
 {
@@ -327,8 +324,8 @@ int print_list_fp(struct framephy_struct *ifp)
 }
 
 /*
- *print_list_pgn: print list of region in VM
- *@plist: list of regions
+ * print_list_pgn: print list of region in VM
+ * @plist: list of regions
  */
 int print_list_rg(struct vm_rg_struct *irg)
 {
@@ -351,8 +348,8 @@ int print_list_rg(struct vm_rg_struct *irg)
 }
 
 /*
- *print_list_vma: print list of virtual memory area
- *@plist: list of virtual memory area
+ * print_list_vma: print list of virtual memory area
+ * @plist: list of virtual memory area
  */
 int print_list_vma(struct vm_area_struct *ivma)
 {
@@ -375,8 +372,8 @@ int print_list_vma(struct vm_area_struct *ivma)
 }
 
 /*
- *print_list_pgn: print list of page number
- *@plist: list of page number
+ * print_list_pgn: print list of page number
+ * @plist: list of page number
  */
 int print_list_pgn(struct pgn_t *ip)
 {
@@ -397,10 +394,10 @@ int print_list_pgn(struct pgn_t *ip)
 }
 
 /*
- *print_pgtbl: print page table
- *@caller: page table owner
- *@start: start address
- *@end: end address
+ * print_pgtbl: print page table
+ * @caller: page table owner
+ * @start: start address
+ * @end: end address
  */
 int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
 {

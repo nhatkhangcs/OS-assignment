@@ -145,6 +145,11 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
    return 0;
 }
 
+/*
+ *  MEMPHY_get_freefp - get free frame
+ *  @mp: memphy struct
+ *  @retfpn: return frame number
+ */
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 {
    pthread_mutex_lock(&mp->lock);
@@ -161,6 +166,10 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
    return 0;
 }
 
+/*
+ *  MEMPHY_dump - dump MEMPHY device
+ *  @mp: memphy struct
+ */
 int MEMPHY_dump(struct memphy_struct *mp)
 {
    if (mp == NULL || mp->storage == NULL)
@@ -178,6 +187,11 @@ int MEMPHY_dump(struct memphy_struct *mp)
    return 0;
 }
 
+/*
+ *  MEMPHY_put_freefp - put free frame
+ *  @mp: memphy struct
+ *  @fpn: frame number
+ */
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
 {
    pthread_mutex_lock(&mp->lock);
@@ -198,7 +212,10 @@ int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
 }
 
 /*
- *  Init MEMPHY struct
+ *  init_memphy - init MEMPHY device
+ *  @mp: memphy struct
+ *  @max_size: max size of memory
+ *  @randomflg: random flag
  */
 int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
 {
