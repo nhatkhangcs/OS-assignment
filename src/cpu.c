@@ -2,6 +2,7 @@
 #include "cpu.h"
 #include "mem.h"
 #include "mm.h"
+#include <stdio.h>
 
 int calc(struct pcb_t *proc)
 {
@@ -70,11 +71,13 @@ int run(struct pcb_t *proc)
         switch (ins.opcode)
         {
         case CALC:
-stat = calc(proc);
+                stat = calc(proc);
+                //printf("Calculation result: %d\n", stat);
                 break;
         case ALLOC:
 #ifdef MM_PAGING
                 stat = pgalloc(proc, ins.arg_0, ins.arg_1);
+                
 #else
                 stat = alloc(proc, ins.arg_0, ins.arg_1);
 #endif

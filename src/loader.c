@@ -52,10 +52,6 @@ struct pcb_t * load(const char * path) {
 		sizeof(struct inst_t) * proc->code->size
 	);
 
-#ifndef MLQ_SHED
-	
-#endif
-
 	uint32_t i = 0;
 	for (i = 0; i < proc->code->size; i++) {
 		fscanf(file, "%s", opcode);

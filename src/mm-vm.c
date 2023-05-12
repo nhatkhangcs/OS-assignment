@@ -38,10 +38,9 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
 struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
 {
   struct vm_area_struct *pvma = mm->mmap;
-
   if (mm->mmap == NULL)
     return NULL;
-
+  
   int vmait = 0;
 
   while (vmait < vmaid)
@@ -51,7 +50,7 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
 
     pvma = pvma->vm_next;
   }
-
+  
   return pvma;
 }
 
@@ -81,12 +80,13 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
   {
+    
     caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
     caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
     *alloc_addr = rgnode.rg_start;
     return 0;
   }
-
+  
   /* Attempt to increase limit to get space */
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
@@ -459,8 +459,9 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg)
 {
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-
+  
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
+  
 
 #ifdef MMDBG
   print_list_rg(cur_vma->vm_freerg_list);
