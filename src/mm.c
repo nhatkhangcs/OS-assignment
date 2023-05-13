@@ -57,11 +57,13 @@ int init_pte(uint32_t *pte,
  */
 int pte_set_swap(uint32_t *pte, int swptyp, int swpoff)
 {
-  SETBIT(*pte, PAGING_PTE_PRESENT_MASK);
+  CLRBIT(*pte, PAGING_PTE_PRESENT_MASK);
   SETBIT(*pte, PAGING_PTE_SWAPPED_MASK);
 
   SETVAL(*pte, swptyp, PAGING_PTE_SWPTYP_MASK, PAGING_PTE_SWPTYP_LOBIT);
   SETVAL(*pte, swpoff, PAGING_PTE_SWPOFF_MASK, PAGING_PTE_SWPOFF_LOBIT);
+
+  //printf("pte set to %08x\n", *pte);
 
   return 0;
 }
@@ -107,7 +109,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     uint32_t pte = 0;
     pte_set_fpn(&pte, traverse->fpn);
     mm->pgd[pgn + pgit] = pte;
-
+    //printf("page table entry address = %p\n", &mm->pgd[pgn+pgit]);
     pthread_mutex_lock(&caller->mram->fifo_lock);
     enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn + pgit]);
     pthread_mutex_unlock(&caller->mram->fifo_lock);
@@ -142,13 +144,14 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     int freefp_found = MEMPHY_get_freefp(caller->mram, &fpn);
     if (freefp_found < 0) // Not enough frame, must swap
     {
-      int vicpgn, swpfpn;
+      printf("Alloc pages: not enough free frames in ram\n");
+      int swpfpn;
+      uint32_t* victim_pte; //pointer to page table entry
 
       /* Find victim page */
-      if (find_victim_page(caller->mm, &vicpgn) < 0) return -1;
+      if (find_victim_page(caller->mram, &victim_pte) < 0) return -1;
       
-      uint32_t victim_pte = caller->mm->pgd[vicpgn];
-      int victim_fpn = PAGING_FPN(victim_pte);
+      int victim_fpn = PAGING_PTE_FPN(*victim_pte);
 
       /* Get free frame in MEMSWP */
       MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
@@ -159,10 +162,9 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
 
       /* Update page table */
       /* Update the victim page entry to SWAPPED */
-      pte_set_swap(&caller->mm->pgd[vicpgn], 0, swpfpn);
-    
+      pte_set_swap(victim_pte, 0, swpfpn);
       /* Update the new page entry to FPN */
-      print_pgtbl(caller, 0, -1);
+      //print_pgtbl(caller, 0, -1);
       fpn = victim_fpn;
     }
     // Put the frame number into frm_lst
@@ -212,6 +214,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
    * do the swaping all to swapper to get the all in ram */
   vmap_page_range(caller, mapstart, incpgnum, frm_lst, ret_rg);
 
+  print_pgtbl(caller, 0, -1);
   return 0;
 }
 
@@ -294,6 +297,7 @@ int enlist_pgn_node(struct pgn_t **plist, uint32_t* pte)
 {
   struct pgn_t *pnode = malloc(sizeof(struct pgn_t));
   pnode->pte = pte;
+  //printf("enlist pte address %p\n", pte);
   pnode->pg_next = *plist;
   *plist = pnode;
 
@@ -387,7 +391,8 @@ int print_list_pgn(struct pgn_t *ip)
   printf("\n");
   while (ip != NULL)
   {
-    int fpn = PAGING_FPN(*(ip->pte));
+    uint32_t pte = *(ip->pte);
+    int fpn = PAGING_PTE_FPN(pte);
     printf("frame[%d]-\n", fpn);
     ip = ip->pg_next;
   }
@@ -403,6 +408,7 @@ int print_list_pgn(struct pgn_t *ip)
  */
 int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
 {
+  printf("Process ID: %d\n", caller->pid);
   int pgn_start, pgn_end;
   int pgit;
 
@@ -414,7 +420,7 @@ int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
   }
   pgn_start = PAGING_PGN(start);
   pgn_end = PAGING_PGN(end);
-
+  
   printf("print_pgtbl: %d - %d", start, end);
   if (caller == NULL)
   {
@@ -426,6 +432,7 @@ int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
   for (pgit = pgn_start; pgit < pgn_end; pgit++)
   {
     printf("%08ld: %08x\n", pgit * sizeof(uint32_t), caller->mm->pgd[pgit]);
+    //printf("%p: %08x\n", &caller->mm->pgd[pgit], caller->mm->pgd[pgit]);
   }
 
   return 0;

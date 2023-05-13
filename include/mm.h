@@ -6,11 +6,11 @@
 
 /* CPU Bus definition */
 #define PAGING_CPU_BUS_WIDTH 22 /* 22bit bus - MAX SPACE 4MB */
-#define PAGING_PAGESZ  256      /* 256B or 8-bits PAGE NUMBER */
-#define PAGING_MEMRAMSZ BIT(10) /* 1MB */
+#define PAGING_PAGESZ 256      /* 256B or 8-bits PAGE NUMBER */
+#define PAGING_MEMRAMSZ BIT(10) /* 1KB */
 #define PAGING_PAGE_ALIGNSZ(sz) (DIV_ROUND_UP(sz,PAGING_PAGESZ)*PAGING_PAGESZ)
 
-#define PAGING_MEMSWPSZ BIT(14) /* 16MB */
+#define PAGING_MEMSWPSZ BIT(14) /* 16KB */
 #define PAGING_SWPFPN_OFFSET 5  
 #define PAGING_MAX_PGN (DIV_ROUND_UP(1<<PAGING_CPU_BUS_WIDTH,PAGING_PAGESZ))
 
@@ -55,8 +55,9 @@
 #define PAGING_ADDR_PGN_HIBIT (PAGING_CPU_BUS_WIDTH - 1)
 
 /* Frame PHY Num */
+//#define NBITS(PAGING_PAGESZ)
+#define PAGING_ADDR_FPN_HIBIT NBITS(PAGING_MEMRAMSZ) - 1
 #define PAGING_ADDR_FPN_LOBIT NBITS(PAGING_PAGESZ)
-#define PAGING_ADDR_FPN_HIBIT (NBITS(PAGING_MEMRAMSZ) - 1)
 
 /* Value operators */
 #define SETBIT(v,mask) (v=v|mask)
@@ -68,12 +69,12 @@
 /* Masks */
 #define PAGING_OFFST_MASK  GENMASK(PAGING_ADDR_OFFST_HIBIT,PAGING_ADDR_OFFST_LOBIT)
 #define PAGING_PGN_MASK  GENMASK(PAGING_ADDR_PGN_HIBIT,PAGING_ADDR_PGN_LOBIT)
-#define PAGING_FPN_MASK  GENMASK(PAGING_ADDR_FPN_HIBIT,PAGING_ADDR_FPN_LOBIT)
-#define PAGING_SWP_MASK  GENMASK(PAGING_SWP_HIBIT,PAGING_SWP_LOBIT)
+#define PAGING_FPN_MASK  GENMASK(PAGING_ADDR_FPN_HIBIT, PAGING_ADDR_FPN_LOBIT)
 
 /* SWAPFPN */
 #define PAGING_SWP_LOBIT NBITS(PAGING_PAGESZ)
 #define PAGING_SWP_HIBIT (NBITS(PAGING_MEMSWPSZ) - 1)
+#define PAGING_SWP_MASK  GENMASK(PAGING_SWP_HIBIT,PAGING_SWP_LOBIT)
 #define PAGING_SWP(pte) ((pte&PAGING_SWP_MASK) >> PAGING_SWPFPN_OFFSET)
 
 /* Extract OFFSET */
@@ -86,8 +87,11 @@
 /* Extract SWAPFPN */
 #define PAGING_PGN(x)  GETVAL(x,PAGING_PGN_MASK,PAGING_ADDR_PGN_LOBIT)
 /* Extract SWAPTYPE */
-#define PAGING_FPN(x)  GETVAL(x,PAGING_FPN_MASK,PAGING_ADDR_FPN_LOBIT)
-
+//#define PAGING_FPN(x)  GETVAL(x,PAGING_FPN_MASK,)
+/* Extract FPN from PTE */
+#define PAGING_PTE_FPN(x) GETVAL (x, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
+/* Extract FPN from swapped PTE */
+#define PAGING_PTE_SWPFPN(x) GETVAL (x, PAGING_PTE_SWPOFF_MASK, PAGING_PTE_SWPOFF_LOBIT);
 /* Memory range operator */
 #define INCLUDE(x1,x2,y1,y2) (((y1-x1)*(x2-y2)>=0)?1:0)
 #define OVERLAP(x1,x2,y1,y2) (((y2-x1)*(x2-y1)>=0)?1:0)
@@ -95,7 +99,7 @@
 /* VM region prototypes */
 struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi);
 int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
-int enlist_pgn_node(struct pgn_t **pgnlist, int pgn);
+int enlist_pgn_node(struct pgn_t **plist, uint32_t* pte);
 //int enlist_tail_pgn_node(struct pgn_t **plist, int pgn);
 int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, 
                     struct framephy_struct *frames, struct vm_rg_struct *ret_rg);
@@ -136,7 +140,7 @@ struct vm_rg_struct * get_symrg_byid(struct mm_struct* mm, int rgid);
 int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int vmaend);
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg);
 int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz);
-int find_victim_page(struct mm_struct* mm, int *pgn);
+int find_victim_page(struct memphy_struct* mram, uint32_t** retpte);
 struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid);
 
 /* MEM/PHY protypes */

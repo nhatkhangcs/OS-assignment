@@ -6,7 +6,8 @@
         "mm.h": "c",
         "string.h": "c",
         "stdlib.h": "c",
-        "common.h": "c"
+        "common.h": "c",
+        "xlocale": "c"
     },
     "makefile.makePath": "E:/SOFT/General_Subjects/operating-system/project/OS-assignment/os"
 }

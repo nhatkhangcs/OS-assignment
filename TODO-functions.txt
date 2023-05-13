@@ -1,1 +1,1 @@
-alloc, free, memphy_dump, pg_getpage, validate_overlap_vm_area, find_victim_page, vmap_page_range, alloc_page_range
+alloc, free, memphy_dump, pg_getpage, validate_overlap_vm_area, find_victim_page, vmap_page_range, alloc_pages_range

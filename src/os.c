@@ -257,6 +257,12 @@ int main(int argc, char *argv[])
 	
 	read_config(path);
 	
+	/* //DEBUG
+	printf("PAGING_PTE_SWPOFF_MASK %08x\n", PAGING_PTE_SWPOFF_MASK);
+	uint32_t swp_pte = 0x40000020;
+	int test_swpfpn = PAGING_PTE_SWPFPN(swp_pte);
+	printf("frame in swap of page entry 0x40000020: %d\n", test_swpfpn);
+	*/
 
 	pthread_t *cpu = (pthread_t *)malloc(num_cpus * sizeof(pthread_t));
 	struct cpu_args *args =

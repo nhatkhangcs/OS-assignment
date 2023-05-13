@@ -24,9 +24,7 @@
  * position @h. For example
  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
  */
-#define GENMASK(h, l) \
-	(((~0U) << (l)) & (~0U >> (BITS_PER_LONG  - (h) - 1)))
-
+#define GENMASK(h, l) (((~0U) << (l)) & (~0U >> (BITS_PER_LONG  - (h) - 1)))
 #define NBITS2(n) ((n&2)?1:0)
 #define NBITS4(n) ((n&(0xC))?(2+NBITS2(n>>2)):(NBITS2(n)))
 #define NBITS8(n) ((n&0xF0)?(4+NBITS4(n>>4)):(NBITS4(n)))

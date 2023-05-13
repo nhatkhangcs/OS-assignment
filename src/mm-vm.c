@@ -165,16 +165,18 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
   if (!PAGING_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
-    int vicpgn, swpfpn;
+    printf("pg_getpage: page fault\n");
 
-    int tgtfpn = PAGING_SWP(pte); // the target frame storing our variable
+    int swpfpn;
+    uint32_t *victim_pte;
+
+    int tgtfpn = PAGING_PTE_SWPFPN(pte); // the target frame storing our variable
     /* TODO: Play with your paging theory here */
     /* Find victim page */
-    if (find_victim_page(caller->mram, &vicpgn) < 0)
+    if (find_victim_page(caller->mram, &victim_pte) < 0)
       return -1;
 
-    uint32_t victim_pte = mm->pgd[vicpgn];
-    int victim_fpn = PAGING_FPN(victim_pte);
+    int victim_fpn = PAGING_PTE_FPN(*victim_pte);
 
     /* Get free frame in MEMSWP */
     MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
@@ -187,16 +189,17 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
     /* Update page table */
     /* Update the victim page entry to SWAPPED */
-
-    pte_set_swap(&victim_pte, 0, swpfpn);
+    pte_set_swap(victim_pte, 0, swpfpn);
 
     /* Update its online status of the target page */
     /* Update the accessed page entry to PRESENT*/
-    pte_set_fpn(&pte, victim_fpn);
-    enlist_pgn_node(&caller->mram->fifo_fp_list, victim_pte);
+    pte_set_fpn(&mm->pgd[pgn], victim_fpn);
+
+    /* Enlist page to fifo queue*/
+    enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn]);
   }
 
-  *fpn = PAGING_FPN(pte);
+  *fpn = PAGING_PTE_FPN(pte);
 
   return 0;
 }
@@ -341,7 +344,7 @@ int free_pcb_memphy(struct pcb_t *caller)
 
     if (!PAGING_PAGE_PRESENT(pte))
     {
-      fpn = PAGING_FPN(pte);
+      fpn = PAGING_PTE_FPN(pte);
       MEMPHY_put_freefp(caller->mram, fpn);
     }
     else
@@ -421,6 +424,8 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
  */
 int find_victim_page(struct memphy_struct *mram, uint32_t **retpte)
 {
+  pthread_mutex_lock(&mram->fifo_lock);
+
   struct pgn_t *pg = mram->fifo_fp_list;
   struct pgn_t *prev = NULL;
   
@@ -442,9 +447,11 @@ int find_victim_page(struct memphy_struct *mram, uint32_t **retpte)
     prev->pg_next = NULL;
   }
 
-  *retpte = pg->pte;
+  *retpte = pg->pte; //pointer pointing to the page table entry of this frame
+  //printf("address of pte of victim page: %p\n", (pg->pte));
   free(pg);
 
+  pthread_mutex_unlock(&mram->fifo_lock);
   return 0;
 }
 
