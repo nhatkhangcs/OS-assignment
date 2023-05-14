@@ -120,7 +120,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     traverse = traverse->fp_next;
   }
 
-#ifdef MMDBG
+#ifdef VMDBG
   print_list_pgn(caller->mram->fifo_fp_list);
 #endif
 
@@ -154,7 +154,8 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
       int victim_fpn = PAGING_PTE_FPN(*victim_pte);
 
       /* Get free frame in MEMSWP */
-      MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+      int free_swp = MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+      if (free_swp < 0) return -1;
 
       /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
       /* Copy victim frame to swap */
@@ -204,8 +205,8 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
   /* Out of memory */
   if (ret_alloc == -1)
   {
-#ifdef MMDBG
-    printf("OOM: vm_map_ram out of memory \n");
+#ifdef VMDBG
+    printf("OOM: No free frames in SWAP\n");
 #endif
     return -1;
   }
@@ -408,7 +409,6 @@ int print_list_pgn(struct fifo_node *ip)
  */
 int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
 {
-  printf("Process ID: %d\n", caller->pid);
   int pgn_start, pgn_end;
   int pgit;
 
@@ -421,7 +421,7 @@ int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
   pgn_start = PAGING_PGN(start);
   pgn_end = PAGING_PGN(end);
   
-  printf("print_pgtbl: %d - %d", start, end);
+  printf("print_pgtbl: %d - %d [PID=%d] ", start, end, caller->pid);
   if (caller == NULL)
   {
     printf("NULL caller\n");

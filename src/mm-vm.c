@@ -120,7 +120,7 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
 
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list(caller->mm, rgnode);
-#ifdef MMDBG
+#ifdef VMDBG
   print_list_rg(caller->mm->mmap->vm_freerg_list);
 #endif
 
@@ -282,10 +282,14 @@ int pgread(
 
   proc->regs[destination] = (uint32_t)data;
 #ifdef IODUMP
-  printf("read region=%d offset=%d value=%d\n", source, offset, data);
+  printf("[PID=%d] read region=%d offset=%d value=%d\n", proc->pid, source, offset, data);
+#endif
+
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
+
+#ifdef MMDBG
   MEMPHY_dump(proc->mram);
 #endif
 
@@ -336,10 +340,14 @@ int pgwrite(
   int val = __write(proc, 0, destination, offset, data);
 
 #ifdef IODUMP
-  printf("write region=%d offset=%d value=%d\n", destination, offset, data);
+  printf("[PID=%d] write region=%d offset=%d value=%d\n", proc->pid, destination, offset, data);
+#endif
+
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
+
+#ifdef MMDBG
   MEMPHY_dump(proc->mram);
 #endif
 
@@ -483,7 +491,7 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
 
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
 
-#ifdef MMDBG
+#ifdef VMDBG
   print_list_rg(cur_vma->vm_freerg_list);
 #endif
 

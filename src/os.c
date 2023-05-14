@@ -182,6 +182,7 @@ static void read_config(const char *path)
 		exit(1);
 	}
 	fscanf(file, "%d %d %d\n", &time_slot, &num_cpus, &num_processes);
+	//timeslot = time_slot;
 	//printf("time_slot = %d, num_cpus = %d, num_processes = %d\n", time_slot, num_cpus, num_processes);
 	ld_processes.path = (char **)malloc(sizeof(char *) * num_processes);
 	ld_processes.start_time = (unsigned long *)
@@ -256,12 +257,6 @@ int main(int argc, char *argv[])
 	
 	read_config(path);
 	
-	/* //DEBUG
-	printf("PAGING_PTE_SWPOFF_MASK %08x\n", PAGING_PTE_SWPOFF_MASK);
-	uint32_t swp_pte = 0x40000020;
-	int test_swpfpn = PAGING_PTE_SWPFPN(swp_pte);
-	printf("frame in swap of page entry 0x40000020: %d\n", test_swpfpn);
-	*/
 
 	pthread_t *cpu = (pthread_t *)malloc(num_cpus * sizeof(pthread_t));
 	struct cpu_args *args =
@@ -331,14 +326,15 @@ int main(int argc, char *argv[])
 
 #ifdef MM_PAGING
 	pthread_mutex_destroy(&mram.lock);
+	pthread_mutex_destroy(&mram.fifo_lock);
 	i = 0;
 
 	while(i < PAGING_MAX_MMSWP){
+		//printf("Free mem %d\n", i);
 		pthread_mutex_destroy(&mswp[i].lock);
 		pthread_mutex_destroy(&mswp[i].fifo_lock);
 		i++;
 	}
-
 #endif
 	
 	return 0;
