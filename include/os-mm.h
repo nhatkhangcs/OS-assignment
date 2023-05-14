@@ -11,10 +11,10 @@ typedef char BYTE;
 typedef uint32_t addr_t;
 //typedef unsigned int uint32_t;
 
-struct pgn_t{
+struct fifo_node{
    //int pgn;
    uint32_t* pte; //pointer to page table entry
-   struct pgn_t *pg_next; 
+   struct fifo_node *pg_next; 
 };
 
 /*
@@ -79,7 +79,7 @@ struct memphy_struct {
 
    /* Management structure. Remember to use lock so that one CPU can access once at a time */
    struct framephy_struct *free_fp_list;
-   struct pgn_t *fifo_fp_list;
+   struct fifo_node *fifo_fp_list;
 	pthread_mutex_t lock;
    pthread_mutex_t fifo_lock;
 };

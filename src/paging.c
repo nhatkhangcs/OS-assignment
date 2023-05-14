@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef MM_PAGING
 static int memramsz;
 static int memswpsz[PAGING_MAX_MMSWP];
 
@@ -18,7 +17,7 @@ struct mmpaging_ld_args
 	struct memphy_struct *active_mswp;
 	struct timer_id_t *timer_id;
 };
-#endif
+
 
 int main()
 {

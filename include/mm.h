@@ -99,8 +99,8 @@
 /* VM region prototypes */
 struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi);
 int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
-int enlist_pgn_node(struct pgn_t **plist, uint32_t* pte);
-//int enlist_tail_pgn_node(struct pgn_t **plist, int pgn);
+int enlist_pgn_node(struct fifo_node **plist, uint32_t* pte);
+//int enlist_tail_pgn_node(struct fifo_node **plist, int pgn);
 int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, 
                     struct framephy_struct *frames, struct vm_rg_struct *ret_rg);
 int vm_map_ram(struct pcb_t *caller, int astart, int send, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg);
@@ -155,6 +155,6 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg);
 int print_list_fp(struct framephy_struct *fp);
 int print_list_rg(struct vm_rg_struct *rg);
 int print_list_vma(struct vm_area_struct *rg);
-int print_list_pgn(struct pgn_t *ip);
+int print_list_pgn(struct fifo_node *ip);
 int print_pgtbl(struct pcb_t *ip, uint32_t start, uint32_t end);
 #endif

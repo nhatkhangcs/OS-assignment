@@ -37,12 +37,6 @@ static addr_t get_first_lv(addr_t addr)
 	return addr >> (OFFSET_LEN + PAGE_LEN);
 }
 
-/* get the second layer index */
-// static addr_t get_second_lv(addr_t addr)
-// {
-// 	return (addr >> OFFSET_LEN) - (get_first_lv(addr) << PAGE_LEN);
-// }
-
 /* Search for page table table from the a segment table */
 static struct trans_table_t *get_trans_table(
 	addr_t index, // Segment level index

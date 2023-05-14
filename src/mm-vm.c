@@ -40,7 +40,7 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
   struct vm_area_struct *pvma = mm->mmap;
   if (mm->mmap == NULL)
     return NULL;
-  
+
   int vmait = 0;
 
   while (vmait < vmaid)
@@ -50,7 +50,7 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
 
     pvma = pvma->vm_next;
   }
-  
+
   return pvma;
 }
 
@@ -80,19 +80,20 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
   {
-    
+
     caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
     caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
     *alloc_addr = rgnode.rg_start;
     return 0;
   }
-  
+
   /* Attempt to increase limit to get space */
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
   int inc_sz = PAGING_PAGE_ALIGNSZ(size);
-  if (inc_vma_limit(caller, vmaid, inc_sz) < 0) return -1;
-  
+  if (inc_vma_limit(caller, vmaid, inc_sz) < 0)
+    return -1;
+
   /* Successfully increase limit */
   *alloc_addr = caller->mm->symrgtbl[rgid].rg_start = cur_vma->sbrk;
   caller->mm->symrgtbl[rgid].rg_end = cur_vma->sbrk + size;
@@ -162,9 +163,6 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
   {
     return -1;
   }
-
-  //debug pte
-  printf("pte: %x\n", pte);
 
   if (!PAGING_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
@@ -243,8 +241,6 @@ int pg_setval(struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
   /* Get the page to MEMRAM, swap from MEMSWAP if needed */
   if (pg_getpage(mm, pgn, &fpn, caller) != 0)
     return -1; /* invalid page access */
-  
-  //printf("Set succeeded\n");
 
   int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
 
@@ -305,7 +301,6 @@ int pgread(
  */
 int __write(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 {
-  //printf("rgid = %d, offset = %d, value = %d\n", rgid, offset, value);
   struct vm_rg_struct *currg = get_symrg_byid(caller->mm, rgid);
 
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
@@ -315,13 +310,15 @@ int __write(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 
   int exceed = (currg->rg_start + offset >= currg->rg_end);
 
-  if (exceed) /* Invalid memory access */{
+  if (exceed) /* Invalid memory access */
+  {
     printf("Write value failed\n");
     return -1;
   }
 
   int set_result = pg_setval(caller->mm, currg->rg_start + offset, value, caller);
-  if(set_result == -1){
+  if (set_result == -1)
+  {
     printf("Write value failed\n");
     return -1;
   }
@@ -445,9 +442,9 @@ int find_victim_page(struct memphy_struct *mram, uint32_t **retpte)
 {
   pthread_mutex_lock(&mram->fifo_lock);
 
-  struct pgn_t *pg = mram->fifo_fp_list;
-  struct pgn_t *prev = NULL;
-  
+  struct fifo_node *pg = mram->fifo_fp_list;
+  struct fifo_node *prev = NULL;
+
   if (pg == NULL)
     return -1;
 
@@ -462,12 +459,13 @@ int find_victim_page(struct memphy_struct *mram, uint32_t **retpte)
     mram->fifo_fp_list = NULL;
   }
 
-  else {
+  else
+  {
     prev->pg_next = NULL;
   }
 
-  *retpte = pg->pte; //pointer pointing to the page table entry of this frame
-  //printf("address of pte of victim page: %p\n", (pg->pte));
+  *retpte = pg->pte; // pointer pointing to the page table entry of this frame
+  // printf("address of pte of victim page: %p\n", (pg->pte));
   free(pg);
 
   pthread_mutex_unlock(&mram->fifo_lock);
@@ -482,15 +480,15 @@ int find_victim_page(struct memphy_struct *mram, uint32_t **retpte)
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg)
 {
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-  
+
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
-  
 
 #ifdef MMDBG
   print_list_rg(cur_vma->vm_freerg_list);
 #endif
 
-  if (rgit == NULL){
+  if (rgit == NULL)
+  {
     return -1;
   }
 

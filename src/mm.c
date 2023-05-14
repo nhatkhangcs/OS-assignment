@@ -293,9 +293,9 @@ int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
  * @plist: page list
  * @pgn: page number
  */
-int enlist_pgn_node(struct pgn_t **plist, uint32_t* pte)
+int enlist_pgn_node(struct fifo_node **plist, uint32_t* pte)
 {
-  struct pgn_t *pnode = malloc(sizeof(struct pgn_t));
+  struct fifo_node *pnode = malloc(sizeof(struct fifo_node));
   pnode->pte = pte;
   //printf("enlist pte address %p\n", pte);
   pnode->pg_next = *plist;
@@ -380,7 +380,7 @@ int print_list_vma(struct vm_area_struct *ivma)
  * print_list_pgn: print list of page number
  * @plist: list of page number
  */
-int print_list_pgn(struct pgn_t *ip)
+int print_list_pgn(struct fifo_node *ip)
 {
   printf("print_list_pgn: ");
   if (ip == NULL)
