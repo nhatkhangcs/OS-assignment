@@ -1,8 +1,3 @@
-2 7
-alloc 200 0
-alloc 200 1
-alloc 300 2
-alloc 200 3
-alloc 200 4
-alloc 300 5
-alloc 200 6
+2 2
+alloc 100 1
+write 10 1 101

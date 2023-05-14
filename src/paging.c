@@ -22,12 +22,7 @@ struct mmpaging_ld_args
 
 int main()
 {
-	// struct pcb_t * ld = load("input/proc/p0s");
 	struct pcb_t *proc = load("input/proc/paging2");
-	// check proc info
-	// printf("pid: %d\n", proc->pid);
-	// printf("priority: %d\n", proc->priority);
-	// printf("code size: %d\n", proc->code->size);
 	/* Init all MEMPHY include 1 MEMRAM and n of MEMSWP */
 	int rdmflag = 1; /* By default memphy is RANDOM ACCESS MEMORY */
 
@@ -55,14 +50,7 @@ int main()
             fscanf(file, "%d", &(memswpsz[sit]));
 
         fscanf(file, "\n"); /* Final character */
-
-		printf("memramsz: %d\n", memramsz);
-		printf("memswpsz[0]: %d\n", memswpsz[0]);
-		printf("memswpsz[1]: %d\n", memswpsz[1]);
-		printf("memswpsz[2]: %d\n", memswpsz[2]);
-		printf("memswpsz[3]: %d\n", memswpsz[3]);
 		
-
 #endif
 
 	struct memphy_struct mram;

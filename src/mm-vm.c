@@ -163,6 +163,9 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     return -1;
   }
 
+  //debug pte
+  printf("pte: %x\n", pte);
+
   if (!PAGING_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
     printf("pg_getpage: page fault\n");
@@ -240,6 +243,8 @@ int pg_setval(struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
   /* Get the page to MEMRAM, swap from MEMSWAP if needed */
   if (pg_getpage(mm, pgn, &fpn, caller) != 0)
     return -1; /* invalid page access */
+  
+  //printf("Set succeeded\n");
 
   int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
 
@@ -269,7 +274,7 @@ int __read(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
   return 0;
 }
 
-/* pgwrite - PAGING-based read a region memory */
+/* pgread - PAGING-based read a region memory */
 int pgread(
     struct pcb_t *proc, // Process executing the instruction
     uint32_t source,    // Index of source register
@@ -285,7 +290,7 @@ int pgread(
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
-  // MEMPHY_dump(proc->mram);
+  MEMPHY_dump(proc->mram);
 #endif
 
   return val;
@@ -300,6 +305,7 @@ int pgread(
  */
 int __write(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 {
+  //printf("rgid = %d, offset = %d, value = %d\n", rgid, offset, value);
   struct vm_rg_struct *currg = get_symrg_byid(caller->mm, rgid);
 
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
@@ -307,7 +313,18 @@ int __write(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
   if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
     return -1;
 
-  pg_setval(caller->mm, currg->rg_start + offset, value, caller);
+  int exceed = (currg->rg_start + offset >= currg->rg_end);
+
+  if (exceed) /* Invalid memory access */{
+    printf("Write value failed\n");
+    return -1;
+  }
+
+  int set_result = pg_setval(caller->mm, currg->rg_start + offset, value, caller);
+  if(set_result == -1){
+    printf("Write value failed\n");
+    return -1;
+  }
 
   return 0;
 }
@@ -319,15 +336,17 @@ int pgwrite(
     uint32_t destination, // Index of destination register
     uint32_t offset)
 {
+  int val = __write(proc, 0, destination, offset, data);
+
 #ifdef IODUMP
   printf("write region=%d offset=%d value=%d\n", destination, offset, data);
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
-// MEMPHY_dump(proc->mram);
+  MEMPHY_dump(proc->mram);
 #endif
 
-  return __write(proc, 0, destination, offset, data);
+  return val;
 }
 
 /* free_pcb_memphy - collect all memphy of pcb
@@ -418,7 +437,7 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
 }
 
 /* find_victim_page - find victim page
- * @mm: caller
+ * @mram: caller of ram memory
  * @retpgn: return page number
  * used FIFO
  */

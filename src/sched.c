@@ -4,22 +4,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-static pthread_mutex_t queue_lock;
+
 static struct queue_t mlq_ready_queue[MAX_PRIO];
-
-int queue_empty(void)
-{
-    unsigned long prio;
-    for (prio = 0; prio < MAX_PRIO; prio++)
-        if (!empty(&mlq_ready_queue[prio]))
-            return -1;
-
-    return 1;
-}
 
 void init_scheduler(void)
 {
     int i;
+    pthread_mutex_init(&mlq_ready_queue->queue_lock, NULL);
 
     for (i = 0; i < MAX_PRIO; i++)
     {
@@ -34,7 +25,6 @@ struct pcb_t *get_mlq_proc(void)
     /*TODO: get a process from PRIORITY [ready_queue].
      * Remember to use lock to protect the queue.
      * */
-    pthread_mutex_lock(&queue_lock);
     unsigned long prio;
     int check = 0;
     for (prio = 0; prio < MAX_PRIO; prio++)
@@ -66,7 +56,6 @@ struct pcb_t *get_mlq_proc(void)
                 }
             }
     }
-    pthread_mutex_unlock(&queue_lock);
     return proc;
 }
 
@@ -79,32 +68,32 @@ struct pcb_t *get_mlq_proc(void)
  */
 void put_mlq_proc(struct pcb_t *proc)
 {
-    pthread_mutex_lock(&queue_lock);
+    pthread_mutex_lock(&mlq_ready_queue->queue_lock);
     enqueue(&mlq_ready_queue[proc->prio], proc);
-    pthread_mutex_unlock(&queue_lock);
+    pthread_mutex_unlock(&mlq_ready_queue->queue_lock);
 }
 
 void add_mlq_proc(struct pcb_t *proc)
 {
-    pthread_mutex_lock(&queue_lock);
+    pthread_mutex_lock(&mlq_ready_queue->queue_lock);
     enqueue(&mlq_ready_queue[proc->prio], proc);
-    pthread_mutex_unlock(&queue_lock);
+    pthread_mutex_unlock(&mlq_ready_queue->queue_lock);
 }
 
 #else
 
 void put_mlq_proc(struct pcb_t *proc)
 {
-    pthread_mutex_lock(&queue_lock);
+    pthread_mutex_lock(&mlq_ready_queue->queue_lock);
     enqueue(&mlq_ready_queue[proc->priority], proc);
-    pthread_mutex_unlock(&queue_lock);
+    pthread_mutex_unlock(&mlq_ready_queue->queue_lock);
 }
 
 void add_mlq_proc(struct pcb_t *proc)
 {
-    pthread_mutex_lock(&queue_lock);
+    pthread_mutex_lock(&mlq_ready_queue->queue_lock);
     enqueue(&mlq_ready_queue[proc->priority], proc);
-    pthread_mutex_unlock(&queue_lock);
+    pthread_mutex_unlock(&mlq_ready_queue->queue_lock);
 }
 
 #endif

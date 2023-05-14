@@ -8,6 +8,7 @@
 //int timeslot;
 
 struct queue_t {
+	pthread_mutex_t queue_lock;
 	struct pcb_t * proc[MAX_QUEUE_SIZE];
 	int size;
 	int slot;

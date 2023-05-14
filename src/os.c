@@ -334,10 +334,11 @@ int main(int argc, char *argv[])
 	i = 0;
 
 	while(i < PAGING_MAX_MMSWP){
-		//printf("Free mem %d\n", i);
 		pthread_mutex_destroy(&mswp[i].lock);
+		pthread_mutex_destroy(&mswp[i].fifo_lock);
 		i++;
 	}
+
 #endif
 	
 	return 0;

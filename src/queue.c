@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "queue.h"
 
-
 int empty(struct queue_t *q)
 {
         if (q == NULL)

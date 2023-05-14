@@ -61,8 +61,11 @@ int MEMPHY_read(struct memphy_struct *mp, int addr, BYTE *value)
    if (mp == NULL)
       return -1;
 
-   if (mp->rdmflg)
+   if (mp->rdmflg){
       *value = mp->storage[addr];
+      //check storage
+      //printf("storage: %d\n", mp->storage[addr]);
+   }
    else /* Sequential access device */
       return MEMPHY_seq_read(mp, addr, value);
 
