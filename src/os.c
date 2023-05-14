@@ -182,7 +182,6 @@ static void read_config(const char *path)
 		exit(1);
 	}
 	fscanf(file, "%d %d %d\n", &time_slot, &num_cpus, &num_processes);
-	//timeslot = time_slot;
 	//printf("time_slot = %d, num_cpus = %d, num_processes = %d\n", time_slot, num_cpus, num_processes);
 	ld_processes.path = (char **)malloc(sizeof(char *) * num_processes);
 	ld_processes.start_time = (unsigned long *)
