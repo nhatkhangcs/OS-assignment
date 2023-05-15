@@ -5,6 +5,7 @@
 #include "loader.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static int memramsz;
 static int memswpsz[PAGING_MAX_MMSWP];
@@ -19,9 +20,19 @@ struct mmpaging_ld_args
 };
 
 
-int main()
+int main(int argc, char *argv[])
 {
-	struct pcb_t *proc = load("input/proc/paging2");
+	if (argc != 2)
+	{
+		printf("Usage: mem [path to configure file]\n");
+		return 1;
+	}
+	char path[100];
+	path[0] = '\0';
+	strcat(path, "input/proc/");
+	strcat(path, argv[1]);
+
+	struct pcb_t *proc = load(path);
 	/* Init all MEMPHY include 1 MEMRAM and n of MEMSWP */
 	int rdmflag = 1; /* By default memphy is RANDOM ACCESS MEMORY */
 

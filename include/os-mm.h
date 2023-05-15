@@ -9,10 +9,8 @@
 
 typedef char BYTE;
 typedef uint32_t addr_t;
-//typedef unsigned int uint32_t;
 
 struct fifo_node{
-   //int pgn;
    uint32_t* pte; //pointer to page table entry
    struct fifo_node *pg_next; 
 };
