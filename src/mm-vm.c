@@ -17,16 +17,57 @@
  */
 int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
 {
-  struct vm_rg_struct *rg_node = mm->mmap->vm_freerg_list;
+  if (rg_elmt->rg_start >= rg_elmt->rg_end) return -1; //Invalid region
 
-  if (rg_elmt->rg_start >= rg_elmt->rg_end)
-    return -1;
+  struct vm_rg_struct *rg_head = mm->mmap->vm_freerg_list;
+  struct vm_rg_struct *newnode = malloc(sizeof(struct vm_rg_struct));
+  struct vm_rg_struct *prev = rg_head;
 
-  if (rg_node != NULL)
-    rg_elmt->rg_next = rg_node;
+  newnode->rg_start = rg_elmt->rg_start;
+  newnode->rg_end = rg_elmt->rg_end;
+  newnode->rg_next = NULL;
 
-  /* Enlist the new region */
-  mm->mmap->vm_freerg_list = rg_elmt;
+  printf("Listing freerg %d - %d\n", newnode->rg_start, newnode->rg_end);
+
+  if (rg_head == NULL || rg_elmt->rg_end <= rg_head->rg_start) {
+    newnode->rg_next = rg_head;
+    mm->mmap->vm_freerg_list = newnode;
+  }
+
+  else {
+    struct vm_rg_struct* cur = rg_head;
+    while (cur->rg_next != NULL && cur->rg_next->rg_start < newnode->rg_end) {
+      prev = cur;
+      cur = cur->rg_next;
+    }
+
+    newnode->rg_next = cur->rg_next;
+    cur->rg_next = newnode;
+  }
+
+  //merge regions
+  struct vm_rg_struct* right = newnode->rg_next;
+  if (right != NULL && newnode->rg_end == right->rg_start) { //merge forward
+    newnode->rg_end = right->rg_end;
+    newnode->rg_next = right->rg_next;
+    free(right);
+  }
+
+  struct vm_rg_struct* left = prev;
+  if (left != NULL && left->rg_end == newnode->rg_start) {
+    left->rg_end = newnode->rg_end;
+    left->rg_next = newnode->rg_next;
+    free(newnode);
+  }
+  
+  // if (rg_elmt->rg_start >= rg_elmt->rg_end)
+  //   return -1;
+
+  // if (rg_node != NULL)
+  //   rg_elmt->rg_next = rg_node;
+
+  // /* Enlist the new region */
+  // mm->mmap->vm_freerg_list = rg_elmt;
 
   return 0;
 }
@@ -80,24 +121,34 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
   {
-
     caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
     caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
     *alloc_addr = rgnode.rg_start;
     return 0;
   }
 
-  /* Attempt to increase limit to get space */
-  struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+  else
+  {
+    /* Attempt to increase limit to get space */
+    struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+    int gap_size = cur_vma->vm_end - cur_vma->sbrk;
+    if (gap_size >= size)
+    {
+      rgnode.rg_start = cur_vma->sbrk;
+      rgnode.rg_end = cur_vma->sbrk + size;
+      cur_vma->sbrk += size;
+      return 0;
+    }
 
-  int inc_sz = PAGING_PAGE_ALIGNSZ(size);
-  if (inc_vma_limit(caller, vmaid, inc_sz) < 0)
-    return -1;
+    int inc_sz = PAGING_PAGE_ALIGNSZ(size - gap_size);
+    if (inc_vma_limit(caller, vmaid, inc_sz) < 0)
+      return -1;
 
-  /* Successfully increase limit */
-  *alloc_addr = caller->mm->symrgtbl[rgid].rg_start = cur_vma->sbrk;
-  caller->mm->symrgtbl[rgid].rg_end = cur_vma->sbrk + size;
-  cur_vma->sbrk = cur_vma->sbrk + size;
+    /*Successful increase limit */
+    caller->mm->symrgtbl[rgid].rg_start = cur_vma->sbrk;
+    caller->mm->symrgtbl[rgid].rg_end = cur_vma->sbrk + size;
+    cur_vma->sbrk = cur_vma->sbrk + size;
+  }
 
   return 0;
 }
@@ -120,6 +171,7 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
 
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list(caller->mm, rgnode);
+
 #ifdef VMDBG
   print_list_rg(caller->mm->mmap->vm_freerg_list);
 #endif
@@ -488,8 +540,8 @@ int find_victim_page(struct memphy_struct *mram, uint32_t **retpte)
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg)
 {
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
+  struct vm_rg_struct *prev = NULL;
 
 #ifdef VMDBG
   print_list_rg(cur_vma->vm_freerg_list);
@@ -518,36 +570,21 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
       }
       else
       { /*Use up all space, remove current node */
-        /*Clone next rg node */
-        struct vm_rg_struct *nextrg = rgit->rg_next;
-
-        /*Cloning */
-        if (nextrg != NULL)
-        {
-          rgit->rg_start = nextrg->rg_start;
-          rgit->rg_end = nextrg->rg_end;
-
-          rgit->rg_next = nextrg->rg_next;
-
-          free(nextrg);
-        }
-        else
-        {                                /*End of free list */
-          rgit->rg_start = rgit->rg_end; // dummy, size 0 region
-          rgit->rg_next = NULL;
-        }
+        if (prev == NULL) cur_vma->vm_freerg_list = NULL; //only 1 node in list
+        else prev->rg_next = rgit->rg_next;
+        free(rgit);
       }
+      return 0;
     }
     else
     {
+      prev = rgit;
       rgit = rgit->rg_next; // Traverse next rg
     }
   }
 
-  if (newrg->rg_start == -1) // new region not found
-    return -1;
-
-  return 0;
+  //if (newrg->rg_start == -1) // new region not found
+  return -1;
 }
 
 #endif

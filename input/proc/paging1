@@ -1,3 +1,9 @@
-2 2
-write 100 1 20
-read 1 20 2
+1 8
+alloc 200 1
+alloc 200 2
+alloc 200 3
+alloc 200 4
+free 2
+free 4
+free 3
+free 1

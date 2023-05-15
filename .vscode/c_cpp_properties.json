@@ -4,7 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:\\src\\vcpkg\\vcpkg/**"
+                "C:\\users\\dell\\vcpkg\\**"
             ],
             "defines": [
                 "_DEBUG",
