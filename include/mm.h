@@ -98,7 +98,7 @@
 
 /* VM region prototypes */
 // struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi);
-// int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
+// int vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
 int enlist_pgn_node(struct fifo_node **plist, uint32_t* pte);
 // int enlist_tail_pgn_node(struct fifo_node **plist, int pgn);
 int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, 
