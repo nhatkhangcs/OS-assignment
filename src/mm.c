@@ -269,25 +269,6 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   return 0;
 }
 
-struct vm_rg_struct *init_vm_rg(int rg_start, int rg_end)
-{
-  struct vm_rg_struct *rgnode = malloc(sizeof(struct vm_rg_struct));
-
-  rgnode->rg_start = rg_start;
-  rgnode->rg_end = rg_end;
-  rgnode->rg_next = NULL;
-
-  return rgnode;
-}
-
-int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
-{
-  rgnode->rg_next = *rglist;
-  *rglist = rgnode;
-
-  return 0;
-}
-
 /*
  * enlist_pgn_node: Enlist page node to the list
  * @plist: page list

@@ -59,14 +59,7 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
     free(newnode);
   }
   
-  // if (rg_elmt->rg_start >= rg_elmt->rg_end)
-  //   return -1;
-
-  // if (rg_node != NULL)
-  //   rg_elmt->rg_next = rg_node;
-
-  // /* Enlist the new region */
-  // mm->mmap->vm_freerg_list = rg_elmt;
+  printf("Freeing region: %lu - %lu\n", rg_elmt->rg_start, rg_elmt->rg_end);
 
   return 0;
 }

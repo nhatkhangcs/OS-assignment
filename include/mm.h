@@ -97,10 +97,10 @@
 #define OVERLAP(x1,x2,y1,y2) (((y2-x1)*(x2-y1)>=0)?1:0)
 
 /* VM region prototypes */
-struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi);
-int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
+// struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi);
+// int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode);
 int enlist_pgn_node(struct fifo_node **plist, uint32_t* pte);
-//int enlist_tail_pgn_node(struct fifo_node **plist, int pgn);
+// int enlist_tail_pgn_node(struct fifo_node **plist, int pgn);
 int vmap_page_range(struct pcb_t *caller, int addr, int pgnum, 
                     struct framephy_struct *frames, struct vm_rg_struct *ret_rg);
 int vm_map_ram(struct pcb_t *caller, int astart, int send, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg);
