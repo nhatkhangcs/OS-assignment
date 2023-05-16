@@ -27,7 +27,7 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
   newnode->rg_end = rg_elmt->rg_end;
   newnode->rg_next = NULL;
 
-  printf("Listing freerg %d - %d\n", newnode->rg_start, newnode->rg_end);
+  //printf("Listing freerg %d - %d\n", newnode->rg_start, newnode->rg_end);
 
   if (rg_head == NULL || rg_elmt->rg_end <= rg_head->rg_start) {
     newnode->rg_next = rg_head;
@@ -123,7 +123,6 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
     caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
     *alloc_addr = rgnode.rg_start;
-    return 0;
   }
 
   else
@@ -149,6 +148,11 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     cur_vma->sbrk = cur_vma->sbrk + size;
   }
 
+  #ifdef VMDBG
+    printf("Free regions after alloc:\n");
+    print_list_rg(caller->mm->mmap->vm_freerg_list);
+  #endif
+
   return 0;
 }
 
@@ -172,6 +176,7 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
   enlist_vm_freerg_list(caller->mm, rgnode);
 
 #ifdef VMDBG
+  printf("Free regions after free:\n");
   print_list_rg(caller->mm->mmap->vm_freerg_list);
 #endif
 
@@ -542,9 +547,9 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
   struct vm_rg_struct *prev = NULL;
 
-#ifdef VMDBG
-  print_list_rg(cur_vma->vm_freerg_list);
-#endif
+// #ifdef VMDBG
+//   print_list_rg(cur_vma->vm_freerg_list);
+// #endif
 
   if (rgit == NULL)
   {
