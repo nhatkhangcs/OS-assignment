@@ -21,7 +21,7 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
 
   struct vm_rg_struct *rg_head = mm->mmap->vm_freerg_list;
   struct vm_rg_struct *newnode = malloc(sizeof(struct vm_rg_struct));
-  struct vm_rg_struct *prev = rg_head;
+  struct vm_rg_struct* cur = NULL;
 
   newnode->rg_start = rg_elmt->rg_start;
   newnode->rg_end = rg_elmt->rg_end;
@@ -35,9 +35,8 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
   }
 
   else {
-    struct vm_rg_struct* cur = rg_head;
+    cur = rg_head;
     while (cur->rg_next != NULL && cur->rg_next->rg_start < newnode->rg_end) {
-      prev = cur;
       cur = cur->rg_next;
     }
 
@@ -53,7 +52,7 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
     free(right);
   }
 
-  struct vm_rg_struct* left = prev;
+  struct vm_rg_struct* left = cur; //merge backward
   if (left != NULL && left->rg_end == newnode->rg_start) {
     left->rg_end = newnode->rg_end;
     left->rg_next = newnode->rg_next;
