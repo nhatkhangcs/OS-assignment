@@ -6,26 +6,34 @@
 To use `make sched`, we redirect to file `os-cfg.h` and comment out 2 lines:
 - `#define MM_PAGING 1`
 - `#define MM_FIXED_MEMSZ 1`
+
+Syntax: `make sched` and `./sched <name of input>`
 ##### 1.1.1. With 3rd parameter (live priority)
 
 Uncomment `#define MLQ_SCHED 1` (we need it)
+
 __Sample input__:
 
-`sched`:
+
+---
 
 4 2 3
 
-0 p1s
+0 p1s 2
 
-3 p2s
+3 p2s 3
 
-1 p3s
- 
+1 p3s 1
+
+---
+
+
 ##### 1.1.2. Without 3rd paramter (default priority):
 Comment `#define MLQ_SCHED 1` (we don't need it)
+
 __Sample input__:
 
-`sched_0`:
+---
 
 2 1 2
 
@@ -33,57 +41,95 @@ __Sample input__:
 
 4 s1
 
-### 1.2. Make all
+---
 
+### 1.2. Make mem
+
+**NOTE:** In this mode, we will use `paging.c` for compiling. In `paging.c`:
+
+- Reading configure size: In case we ourselves want to adjust MEMRAM size and MEMSWP size, we configure the input `mem_size` path
+    
+    - Example: We want MEMRAM size to have a maximum resource of `x` pages (256 x `x`B), and first MEMSWP has `y` pages (256 x `y`B)
+    - So, at the following line of `paging.c`:
+    
+        `FILE *file = fopen("input/mem_size/config1", "r");`
+
+        We just need to adjust name of configuration `config1` to the configuration you want (create more configuration if you want to).
+
+- Syntax: `make mem` and `./mem <name of process in folder proc (related to memory>)`
 ##### 1.2.1. Fixed memory size:
 
 With fixed mem size, uncomment the `#define MM_FIXED_MEMSZ 1`
-__Sample input__:
 
-`os_1_singleCPU_mlq`:
+__Sample input__~~:~~
 
-2 1 8
+---
 
-1 s4
+1 12
 
-2 s3
+alloc 200 1
 
-4 m1s
+alloc 200 2
 
-6 s2
+alloc 200 3
 
-7 m0s
+alloc 200 4
 
-9 p1s
+free 3
 
-11 s0
+alloc 100 5
 
-16 s1
+free 4
+
+alloc 100 6
+
+free 1
+
+free 2
+
+free 5
+
+free 6
+
+---
 
 ##### 1.2.2. Non-fixed memory size:
 
 Comment the `#define MM_FIXED_MEMSZ 1`
 
-__Sample input__:
+__Sample input__ (same with fixed one):
 
-`os_1_mlq_paging`:
+---
 
-2 4 8
+1 12
 
-1048576 16777216 0 0 0
+alloc 200 1
 
-1 p0s 130
+alloc 200 2
 
-2 s3 39
+alloc 200 3
 
-4 m1s 15
+alloc 200 4
 
-6 s2 120
+free 3
 
-7 m0s 120
+alloc 100 5
 
-9 p1s 15
+free 4
 
-11 s0 38
+alloc 100 6
 
-16 s1 0
+free 1
+
+free 2
+
+free 5
+
+free 6
+
+---
+
+### 1.3. Make all
+
+- Uncomment all mode above
+- Syntax: `make all` and `./os <name of file in input>`
