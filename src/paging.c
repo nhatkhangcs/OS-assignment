@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
          *        MEM_RAM_SZ MEM_SWP0_SZ MEM_SWP1_SZ MEM_SWP2_SZ MEM_SWP3_SZ
          */
 		// open configuration file for memory size input
-		FILE *file = fopen("input/mem_size/config1", "r");
+		FILE *file = fopen("input/mem_size/config2", "r");
         fscanf(file, "%d\n", &memramsz);
         for (sit = 0; sit < PAGING_MAX_MMSWP; sit++)
             fscanf(file, "%d", &(memswpsz[sit]));

@@ -62,7 +62,7 @@ static void *cpu_routine(void *args)
 		{
 			/* No process is running, the we load new process from
 			 * ready queue */
-			proc = get_proc();
+			proc = get_mlq_proc();
 			if (proc == NULL)
 			{
 				next_slot(timer_id);
@@ -74,8 +74,12 @@ static void *cpu_routine(void *args)
 			/* The porcess has finish it job */
 			printf("\tCPU %d: Processed %2d has finished\n",
 				   id, proc->pid);
+#ifdef MM_PAGING
+			free_pcb_memphy(proc);
+#endif
 			free(proc);
-			proc = get_proc();
+			
+			proc = get_mlq_proc();
 			time_left = 0;
 		}
 		else if (time_left == 0)
@@ -83,8 +87,8 @@ static void *cpu_routine(void *args)
 			/* The process has done its job in current time slot */
 			printf("\tCPU %d: Put process %2d to run queue\n",
 				   id, proc->pid);
-			put_proc(proc);
-			proc = get_proc();
+			put_mlq_proc(proc);
+			proc = get_mlq_proc();
 		}
 
 		/* Recheck process status after loading new process */
@@ -155,7 +159,7 @@ static void *ld_routine(void *args)
         printf("\tLoaded a process at %s, PID: %d PRIO: %u\n",
                ld_processes.path[i], proc->pid, proc->priority);
 #endif
-		add_proc(proc);
+		put_mlq_proc(proc);
 		free(ld_processes.path[i]);
 		
 		i++;

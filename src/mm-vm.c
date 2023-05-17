@@ -222,6 +222,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     int tgtfpn = PAGING_PTE_SWPFPN(pte); // the target frame storing our variable
     /* TODO: Play with your paging theory here */
     /* Find victim page */
+    //printf("target frame: %d\n", tgtfpn);
     if (find_victim_page(caller->mram, &victim_pte) < 0)
       return -1;
 
@@ -236,6 +237,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* Copy target frame from swap to mem */
     __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, victim_fpn);
 
+    MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
     /* Update page table */
     /* Update the victim page entry to SWAPPED */
     pte_set_swap(victim_pte, 0, swpfpn);
@@ -246,9 +248,15 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
     /* Enlist page to fifo queue*/
     enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn]);
+
+    //pte = *victim_pte;
+    *fpn = victim_fpn;
   }
 
-  *fpn = PAGING_PTE_FPN(pte);
+  else *fpn = PAGING_PTE_FPN(pte);
+
+  //check value of region
+  //printf("pg_getpage: pgn = %d, fpn = %d\n", pgn, *fpn);
 
   return 0;
 }
@@ -264,18 +272,19 @@ int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
   int off = PAGING_OFFST(addr);
   int fpn;
 
+  //printf("pg_getval: addr = %d, pgn = %d, off = %d\n", addr, pgn, off);
+
   /* Get the page to MEMRAM, swap from MEMSWAP if needed */
   if (pg_getpage(mm, pgn, &fpn, caller) != 0)
     return -1; /* invalid page access */
 
   int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
-
   MEMPHY_read(caller->mram, phyaddr, data);
 
   return 0;
 }
 
-/* pg_setval - write value to given offset
+/* pg_setval - write vaue to given offset
  * @mm: memory region
  * @addr: virtual address to access
  * @value: value
@@ -285,6 +294,8 @@ int pg_setval(struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
   int pgn = PAGING_PGN(addr);
   int off = PAGING_OFFST(addr);
   int fpn;
+
+  //printf("pg_setval: addr = %d, pgn = %d, off = %d\n", addr, pgn, off);
 
   /* Get the page to MEMRAM, swap from MEMSWAP if needed */
   if (pg_getpage(mm, pgn, &fpn, caller) != 0)
@@ -421,7 +432,7 @@ int free_pcb_memphy(struct pcb_t *caller)
     }
     else
     {
-      fpn = PAGING_SWP(pte);
+      fpn = PAGING_PTE_SWPFPN(pte);
       MEMPHY_put_freefp(caller->active_mswp, fpn);
     }
   }
