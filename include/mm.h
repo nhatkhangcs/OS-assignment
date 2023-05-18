@@ -154,7 +154,6 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg);
 
 /* DEBUG case */
 int print_list_fp(struct fifo_node *fp);
-int print_list_free_fp(struct framephy_struct *fp);
 int print_list_rg(struct vm_rg_struct *rg);
 int print_list_vma(struct vm_area_struct *rg);
 int print_list_pgn(struct fifo_node *ip);

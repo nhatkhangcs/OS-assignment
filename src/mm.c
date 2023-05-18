@@ -316,28 +316,6 @@ int print_list_fp(struct fifo_node *ifp)
 }
 
 /*
- * print_list_fp: print list of free frames
- * @plist: list of free frames
- */
-int print_list_free_fp(struct framephy_struct *ifp)
-{
-  struct framephy_struct *fp = ifp;
-  if (fp == NULL)
-  {
-    printf("NULL list\n");
-    return -1;
-  }
-  printf("\n");
-  while (fp != NULL)
-  {
-    printf("fp[%d]\n", fp->fpn);
-    fp = fp->fp_next;
-  }
-  printf("\n");
-  return 0;
-}
-
-/*
  * print_list_pgn: print list of region in VM
  * @plist: list of regions
  */
