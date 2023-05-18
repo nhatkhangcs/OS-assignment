@@ -50,13 +50,12 @@ __Sample input__:
 - Reading configure size: In case we ourselves want to adjust MEMRAM size and MEMSWP size, we configure the input `mem_size` path
     
     - Example: We want MEMRAM size to have a maximum resource of `x` pages (256 x `x`B), and first MEMSWP has `y` pages (256 x `y`B)
-    - So, at the following line of `paging.c`:
-    
-        `FILE *file = fopen("input/mem_size/config1", "r");`
+   
+   - **UPDATE**: You can choose input file and configuration for memory size you want as arguments
 
-        We just need to adjust name of configuration `config1` to the configuration you want (create more configuration if you want to).
+- Syntax: `make mem` and `./mem <name of process in folder proc (related to memory)> <config>`
 
-- Syntax: `make mem` and `./mem <name of process in folder proc (related to memory>)`
+    - Example: `./mem paging1 config1`
 ##### 1.2.1. Fixed memory size:
 
 With fixed mem size, uncomment the `#define MM_FIXED_MEMSZ 1`
