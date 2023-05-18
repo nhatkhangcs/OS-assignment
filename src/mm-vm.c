@@ -143,6 +143,10 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 #ifdef VMDBG
   printf("Free regions after alloc:\n");
   print_list_rg(caller->mm->mmap->vm_freerg_list);
+  printf("Using frames after alloc:");
+  print_list_fp(caller->mram->fifo_fp_list);
+  //printf("Free frames after alloc:\n");
+  //print_list_free_fp(caller->mram->free_fp_list);
 #endif
 
   return 0;
@@ -170,6 +174,10 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
 #ifdef VMDBG
   printf("Free regions after free:\n");
   print_list_rg(caller->mm->mmap->vm_freerg_list);
+  printf("Using frames after free:");
+  print_list_fp(caller->mram->fifo_fp_list);
+  //printf("Free frames after free:\n");
+  //print_list_free_fp(caller->mram->free_fp_list);
 #endif
 
   return 0;
@@ -247,7 +255,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     pte_set_fpn(&mm->pgd[pgn], victim_fpn);
 
     /* Enlist page to fifo queue*/
-    enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn]);
+    enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn], victim_fpn);
 
     //pte = *victim_pte;
     *fpn = victim_fpn;

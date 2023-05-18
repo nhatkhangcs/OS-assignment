@@ -12,6 +12,7 @@ typedef uint32_t addr_t;
 
 struct fifo_node{
    uint32_t* pte; //pointer to page table entry
+   int fpn;
    struct fifo_node *pg_next; 
 };
 

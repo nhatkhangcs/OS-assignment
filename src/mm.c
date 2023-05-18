@@ -111,7 +111,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     mm->pgd[pgn + pgit] = pte;
     //printf("page table entry address = %p\n", &mm->pgd[pgn+pgit]);
     pthread_mutex_lock(&caller->mram->fifo_lock);
-    enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn + pgit]);
+    enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn + pgit], traverse->fpn);
     pthread_mutex_unlock(&caller->mram->fifo_lock);
 
     /* Update return region */
@@ -119,10 +119,6 @@ int vmap_page_range(struct pcb_t *caller,           // process call
     pgit++;
     traverse = traverse->fp_next;
   }
-
-#ifdef VMDBG
-  print_list_pgn(caller->mram->fifo_fp_list);
-#endif
 
   return 0;
 }
@@ -274,11 +270,12 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
  * @plist: page list
  * @pgn: page number
  */
-int enlist_pgn_node(struct fifo_node **plist, uint32_t* pte)
+int enlist_pgn_node(struct fifo_node **plist, uint32_t* pte, int fpn)
 {
   struct fifo_node *pnode = malloc(sizeof(struct fifo_node));
   pnode->pte = pte;
   //printf("enlist pte address %p\n", pte);
+  pnode->fpn = fpn;
   pnode->pg_next = *plist;
   *plist = pnode;
 
@@ -289,11 +286,31 @@ int enlist_pgn_node(struct fifo_node **plist, uint32_t* pte)
  * print_list_fp: print list of free frames
  * @plist: list of free frames
  */
-int print_list_fp(struct framephy_struct *ifp)
+int print_list_fp(struct fifo_node *ifp)
+{
+  struct fifo_node *fp = ifp;
+  if (fp == NULL)
+  {
+    printf("NULL list\n");
+    return -1;
+  }
+  printf("\n");
+  while (fp != NULL)
+  {
+    printf("fp[%d]\n", fp->fpn);
+    fp = fp->pg_next;
+  }
+  printf("\n");
+  return 0;
+}
+
+/*
+ * print_list_fp: print list of free frames
+ * @plist: list of free frames
+ */
+int print_list_free_fp(struct framephy_struct *ifp)
 {
   struct framephy_struct *fp = ifp;
-
-  printf("print_list_fp: ");
   if (fp == NULL)
   {
     printf("NULL list\n");
@@ -374,7 +391,7 @@ int print_list_pgn(struct fifo_node *ip)
   {
     uint32_t pte = *(ip->pte);
     int fpn = PAGING_PTE_FPN(pte);
-    printf("frame[%d]-\n", fpn);
+    printf("page[%d]-\n", fpn);
     ip = ip->pg_next;
   }
   printf("\n");
