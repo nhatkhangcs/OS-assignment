@@ -132,7 +132,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
 int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct **frm_lst)
 {
   int pgit, fpn;
-  struct framephy_struct *newfp_str;
+  struct framephy_struct *newfp_str = NULL;
 
   //printf("req page %d\n", req_pgnum);
   for (pgit = 0; pgit < req_pgnum; pgit++)
@@ -167,9 +167,20 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     // Put the frame number into frm_lst
     newfp_str = malloc(sizeof(struct framephy_struct));
     newfp_str->fpn = fpn;
-    newfp_str->fp_next = *frm_lst;
     newfp_str->owner = caller->mm;
-    *frm_lst = newfp_str;
+    
+    //insert newfp_str at tail of frm_lst
+    if(*frm_lst == NULL){
+      *frm_lst = newfp_str;
+    }
+
+    else{
+      struct framephy_struct *traverse = *frm_lst;
+      while(traverse->fp_next != NULL){
+        traverse = traverse->fp_next;
+      }
+      traverse->fp_next = newfp_str;
+    }
   }
 
   return 0;
