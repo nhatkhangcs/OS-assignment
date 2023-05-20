@@ -167,9 +167,14 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     // Put the frame number into frm_lst
     newfp_str = malloc(sizeof(struct framephy_struct));
     newfp_str->fpn = fpn;
-    newfp_str->fp_next = *frm_lst;
+    newfp_str->fp_next = NULL;
     newfp_str->owner = caller->mm;
-    *frm_lst = newfp_str;
+    if (*frm_lst == NULL) *frm_lst = newfp_str;
+    else {
+      struct framephy_struct *it = *frm_lst;
+      while(it->fp_next != NULL) it = it->fp_next;
+      it->fp_next = newfp_str;
+    }
   }
 
   return 0;

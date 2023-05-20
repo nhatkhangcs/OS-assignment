@@ -143,7 +143,10 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 #ifdef VMDBG
   printf("Free regions after alloc:\n");
   print_list_rg(caller->mm->mmap->vm_freerg_list);
-  printf("Using frames after alloc:");
+#endif
+
+#ifdef MMDBG
+  printf("Frame order after alloc:");
   print_list_fp(caller->mram->fifo_fp_list);
   //printf("Free frames after alloc:\n");
   //print_list_free_fp(caller->mram->free_fp_list);
@@ -174,12 +177,15 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
 #ifdef VMDBG
   printf("Free regions after free:\n");
   print_list_rg(caller->mm->mmap->vm_freerg_list);
-  printf("Using frames after free:");
+#endif
+/*
+#ifdef MMDBG
+  printf("Frame order after free:");
   print_list_fp(caller->mram->fifo_fp_list);
   //printf("Free frames after free:\n");
   //print_list_free_fp(caller->mram->free_fp_list);
 #endif
-
+*/
   return 0;
 }
 
