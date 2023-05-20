@@ -14,6 +14,7 @@
 static int time_slot;
 static int num_cpus;
 static int done = 0;
+pthread_mutex_t cpu_lock;
 
 #ifdef MM_PAGING
 static int memramsz;
@@ -47,8 +48,10 @@ struct cpu_args
 
 static void *cpu_routine(void *args)
 {
-	struct timer_id_t *timer_id = ((struct cpu_args *)args)->timer_id;
 	int id = ((struct cpu_args *)args)->id;
+	struct timer_id_t *timer_id = ((struct cpu_args *)args)->timer_id;
+
+	
 	/* Check for new process in ready queue */
 	int time_left = 0;
 	struct pcb_t *proc = NULL;
@@ -74,9 +77,9 @@ static void *cpu_routine(void *args)
 			/* The porcess has finish it job */
 			printf("\tCPU %d: Processed %2d has finished\n",
 				   id, proc->pid);
-#ifdef MM_PAGING
-			free_pcb_memphy(proc);
-#endif
+// #ifdef MM_PAGING
+// 			free_pcb_memphy(proc);
+// #endif
 			free(proc);
 			
 			proc = get_mlq_proc();
@@ -260,13 +263,14 @@ int main(int argc, char *argv[])
 	strcat(path, argv[1]);
 	
 	read_config(path);
-	
 
 	pthread_t *cpu = (pthread_t *)malloc(num_cpus * sizeof(pthread_t));
 	struct cpu_args *args =
 		(struct cpu_args *)malloc(sizeof(struct cpu_args) * num_cpus);
 	pthread_t ld;
 
+	/* init lock */
+	pthread_mutex_init(&cpu_lock, NULL);
 	/* Init timer */
 	int i;
 	for (i = 0; i < num_cpus; i++)
@@ -312,6 +316,7 @@ int main(int argc, char *argv[])
 #else
 	pthread_create(&ld, NULL, ld_routine, (void *)ld_event);
 #endif
+	
 	for (i = 0; i < num_cpus; i++)
 	{
 		pthread_create(&cpu[i], NULL,

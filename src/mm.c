@@ -212,7 +212,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
   /* Out of memory */
   if (ret_alloc == -1)
   {
-#ifdef VMDBG
+#ifdef MMDBG
     printf("OOM: No free frames in SWAP\n");
 #endif
     return -1;
