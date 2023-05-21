@@ -81,9 +81,9 @@ static void *cpu_routine(void *args)
 			pthread_mutex_lock(&cpu_lock);
 			process_counter++;
 			pthread_mutex_unlock(&cpu_lock);
-// #ifdef MM_PAGING
-// 			free_pcb_memphy(proc);
-// #endif
+#ifdef MM_PAGING
+			free_pcb_memphy(proc);
+#endif
 			free(proc);
 			
 			proc = get_mlq_proc();

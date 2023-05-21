@@ -239,7 +239,9 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     int victim_fpn = PAGING_PTE_FPN(*victim_pte);
 
     /* Get free frame in MEMSWP */
+    pthread_mutex_lock(&caller->active_mswp->lock);
     MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+    pthread_mutex_unlock(&caller->active_mswp->lock);
 
     /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
     /* Copy victim frame to swap */
@@ -247,7 +249,9 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* Copy target frame from swap to mem */
     __swap_cp_page(caller->active_mswp, tgtfpn, caller->mram, victim_fpn);
 
+    pthread_mutex_lock(&caller->active_mswp->lock);
     MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
+    pthread_mutex_unlock(&caller->active_mswp->lock);
     /* Update page table */
     /* Update the victim page entry to SWAPPED */
     pte_set_swap(victim_pte, 0, swpfpn);
@@ -257,7 +261,9 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     pte_set_fpn(&mm->pgd[pgn], victim_fpn);
 
     /* Enlist page to fifo queue*/
+    pthread_mutex_lock(&caller->mram->fifo_lock);
     enlist_pgn_node(&caller->mram->fifo_fp_list, &mm->pgd[pgn], victim_fpn);
+    pthread_mutex_unlock(&caller->mram->fifo_lock);
 
     //pte = *victim_pte;
     *fpn = victim_fpn;
@@ -281,8 +287,6 @@ int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
   int pgn = PAGING_PGN(addr);
   int off = PAGING_OFFST(addr);
   int fpn;
-
-  //printf("pg_getval: addr = %d, pgn = %d, off = %d\n", addr, pgn, off);
 
   /* Get the page to MEMRAM, swap from MEMSWAP if needed */
   if (pg_getpage(mm, pgn, &fpn, caller) != 0)
@@ -423,31 +427,67 @@ int pgwrite(
   return val;
 }
 
+/* remove_fifo_node - remove fifo node from fifo list
+ * @caller: caller
+ * @pte: page table entry
+*/
+void remove_fifo_node(struct pcb_t **caller, uint32_t pte)
+{
+    struct fifo_node *cur = (*caller)->mram->fifo_fp_list;
+    struct fifo_node *prev = NULL;
+
+    while (cur != NULL)
+    {
+        if (*(cur->pte) == pte)
+        {
+            if (prev == NULL)
+            {
+                (*caller)->mram->fifo_fp_list = cur->pg_next;
+            }
+            else
+            {
+                prev->pg_next = cur->pg_next;
+            }
+            free(cur);
+            break;
+        }
+        prev = cur;
+        cur = cur->pg_next;
+    }
+}
+
 /* free_pcb_memphy - collect all memphy of pcb
  * @caller: caller
  */
 int free_pcb_memphy(struct pcb_t *caller)
 {
-  int pagenum, fpn;
-  uint32_t pte;
+    int pagenum, fpn;
+    uint32_t pte;
 
-  for (pagenum = 0; pagenum < PAGING_MAX_PGN; pagenum++)
-  {
-    pte = caller->mm->pgd[pagenum];
-
-    if (PAGING_PAGE_PRESENT(pte))
+    for (pagenum = 0; pagenum < caller->mm->mmap->vm_end / PAGING_PAGESZ; pagenum++)
     {
-      fpn = PAGING_PTE_FPN(pte);
-      MEMPHY_put_freefp(caller->mram, fpn);
-    }
-    else
-    {
-      fpn = PAGING_PTE_SWPFPN(pte);
-      MEMPHY_put_freefp(caller->active_mswp, fpn);
-    }
-  }
+        pte = caller->mm->pgd[pagenum];
 
-  return 0;
+        if (!PAGING_PAGE_PRESENT(pte))
+        {
+            fpn = PAGING_PTE_SWPFPN(pte);
+            pthread_mutex_lock(&caller->active_mswp->lock);
+            MEMPHY_put_freefp(caller->active_mswp, fpn);
+            pthread_mutex_unlock(&caller->active_mswp->lock);
+        }
+        else
+        {
+            fpn = PAGING_PTE_FPN(pte);
+            pthread_mutex_lock(&caller->active_mswp->lock);
+            MEMPHY_put_freefp(caller->mram, fpn);
+            pthread_mutex_unlock(&caller->active_mswp->lock);
+            pthread_mutex_lock(&caller->mram->fifo_lock);
+            remove_fifo_node(&caller, pte);
+            pthread_mutex_unlock(&caller->mram->fifo_lock);
+        }
+    }
+
+    return 0;
 }
 
 /* get_vm_area_node - get vm area for a number of pages

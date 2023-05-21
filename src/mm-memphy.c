@@ -132,12 +132,7 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
    /* Init head of free framephy list */
    fst = malloc(sizeof(struct framephy_struct));
    fst->fpn = iter;
-
-   pthread_mutex_lock(&mp->lock);
    mp->free_fp_list = fst;
-   pthread_mutex_unlock(&mp->lock);
-
-   
    /* We have list with first element, fill in the rest num-1 element member*/
    for (iter = 1; iter < numfp; iter++)
    {
@@ -158,9 +153,7 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
  */
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 {
-   pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
-   pthread_mutex_unlock(&mp->lock);
 
    if (fp == NULL) return -1;
    
@@ -200,9 +193,8 @@ int MEMPHY_dump(struct memphy_struct *mp)
  */
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
 {
-   pthread_mutex_lock(&mp->lock);
+   
    struct framephy_struct *fp = mp->free_fp_list;
-   pthread_mutex_unlock(&mp->lock);
 
    struct framephy_struct *newnode = malloc(sizeof(struct framephy_struct));
 
@@ -210,9 +202,7 @@ int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
    newnode->fpn = fpn;
    newnode->fp_next = fp;
 
-   pthread_mutex_lock(&mp->lock);
    mp->free_fp_list = newnode;
-   pthread_mutex_unlock(&mp->lock);
 
    return 0;
 }
