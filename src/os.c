@@ -15,6 +15,7 @@ static int time_slot;
 static int num_cpus;
 static int done = 0;
 pthread_mutex_t cpu_lock;
+int process_counter = 0;
 
 #ifdef MM_PAGING
 static int memramsz;
@@ -66,7 +67,8 @@ static void *cpu_routine(void *args)
 			/* No process is running, the we load new process from
 			 * ready queue */
 			proc = get_mlq_proc();
-			if (proc == NULL)
+			if(proc == NULL && process_counter >= num_processes) done = 1;
+			else if (proc == NULL)
 			{
 				next_slot(timer_id);
 				continue; /* First load failed. skip dummy load */
@@ -75,8 +77,10 @@ static void *cpu_routine(void *args)
 		else if (proc->pc == proc->code->size)
 		{
 			/* The porcess has finish it job */
-			printf("\tCPU %d: Processed %2d has finished\n",
-				   id, proc->pid);
+			printf("\tCPU %d: Processed %2d has finished\n", id, proc->pid);
+			pthread_mutex_lock(&cpu_lock);
+			process_counter++;
+			pthread_mutex_unlock(&cpu_lock);
 // #ifdef MM_PAGING
 // 			free_pcb_memphy(proc);
 // #endif
